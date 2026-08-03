@@ -1,7 +1,27 @@
 import Phaser from 'phaser'
+import { Hedgehog } from '../entities/Hedgehog'
+import {
+  generateAdditionProblem,
+  type MathProblem,
+} from '../math/MathProblem'
+
+type AnswerButton = {
+  background: Phaser.GameObjects.Rectangle
+  text: Phaser.GameObjects.Text
+  value: number
+}
 
 export class PlayScene extends Phaser.Scene {
-  private hedgehog!: Phaser.GameObjects.Container
+  private problem!: MathProblem
+  private problemText!: Phaser.GameObjects.Text
+  private feedbackText!: Phaser.GameObjects.Text
+  private appleText!: Phaser.GameObjects.Text
+
+  private hedgehogs: Hedgehog[] = []
+  private answerButtons: AnswerButton[] = []
+
+  private score = 0
+  private isAnswerLocked = false
 
   constructor() {
     super({
@@ -11,69 +31,337 @@ export class PlayScene extends Phaser.Scene {
 
   create(): void {
     this.createBackground()
-    this.createTitle()
-    this.createHedgehog()
-    this.createAnimations()
-    this.createStatusText()
+    this.createHeader()
+    this.createProblemPanel()
+    this.createAnswerArea()
+    this.startNewProblem()
   }
 
   private createBackground(): void {
     const { width, height } = this.scale
 
-    // Небо
     this.add
       .rectangle(0, 0, width, height, 0xcceeff)
       .setOrigin(0)
 
-    // Сонце
-    const sun = this.add.circle(width - 115, 95, 47, 0xffdf72)
+    this.add.circle(width - 105, 90, 44, 0xffdf72)
 
-    this.tweens.add({
-      targets: sun,
-      scale: 1.08,
-      alpha: 0.9,
-      duration: 1800,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut',
-    })
+    this.createCloud(155, 105, 1)
+    this.createCloud(width - 300, 145, 0.75)
 
-    // Хмаринки
-    this.createCloud(180, 115, 1)
-    this.createCloud(width - 320, 175, 0.72)
-
-    // Далекі пагорби
     this.add.ellipse(
-      width * 0.25,
+      width * 0.23,
       height - 120,
-      width * 0.75,
-      330,
+      width * 0.72,
+      320,
       0xa9d379,
     )
 
     this.add.ellipse(
-      width * 0.77,
-      height - 105,
-      width * 0.9,
-      350,
+      width * 0.78,
+      height - 115,
+      width * 0.85,
+      340,
       0x92c866,
     )
 
-    // Основна галявина
     this.add
-      .rectangle(0, height * 0.61, width, height * 0.39, 0x79b957)
+      .rectangle(
+        0,
+        height * 0.54,
+        width,
+        height * 0.46,
+        0x79b957,
+      )
       .setOrigin(0)
 
-    // Доріжка
     this.add.ellipse(
       width / 2,
-      height + 35,
-      width * 0.78,
-      280,
+      height + 65,
+      width * 0.75,
+      300,
       0xe4c68c,
     )
 
     this.createFlowers()
+  }
+
+  private createHeader(): void {
+    const { width } = this.scale
+
+    this.add
+      .text(width / 2, 48, 'Калькулятор їжачків', {
+        color: '#294b32',
+        fontFamily:
+          '"Trebuchet MS", Arial, sans-serif',
+        fontSize: '42px',
+        fontStyle: 'bold',
+        stroke: '#ffffff',
+        strokeThickness: 7,
+      })
+      .setOrigin(0.5)
+
+    const scorePanel = this.add.rectangle(
+      width - 120,
+      55,
+      155,
+      62,
+      0xfff4c8,
+      0.95,
+    )
+
+    scorePanel.setStrokeStyle(3, 0xe8bd61)
+
+    this.appleText = this.add
+      .text(width - 120, 55, '🍎 0', {
+        color: '#604624',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '28px',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+  }
+
+  private createProblemPanel(): void {
+    const { width } = this.scale
+
+    const panel = this.add.rectangle(
+      width / 2,
+      145,
+      410,
+      92,
+      0xffffff,
+      0.9,
+    )
+
+    panel.setStrokeStyle(4, 0x9dc77d)
+
+    this.problemText = this.add
+      .text(width / 2, 145, '', {
+        color: '#294b32',
+        fontFamily:
+          '"Trebuchet MS", Arial, sans-serif',
+        fontSize: '54px',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+
+    this.feedbackText = this.add
+      .text(width / 2, 215, '', {
+        color: '#31533a',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '24px',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+  }
+
+  private createAnswerArea(): void {
+    const { width, height } = this.scale
+    const startX = width / 2 - 255
+    const buttonY = height - 75
+
+    for (let index = 0; index < 4; index += 1) {
+      const x = startX + index * 170
+
+      const background = this.add
+        .rectangle(
+          x,
+          buttonY,
+          135,
+          82,
+          0xf7bc58,
+        )
+        .setStrokeStyle(4, 0xbd702a)
+        .setInteractive({
+          useHandCursor: true,
+        })
+
+      const text = this.add
+        .text(x, buttonY, '', {
+          color: '#4f351b',
+          fontFamily:
+            '"Trebuchet MS", Arial, sans-serif',
+          fontSize: '42px',
+          fontStyle: 'bold',
+        })
+        .setOrigin(0.5)
+
+      const button: AnswerButton = {
+        background,
+        text,
+        value: 0,
+      }
+
+      background.on('pointerover', () => {
+        if (!this.isAnswerLocked) {
+          background.setScale(1.06)
+        }
+      })
+
+      background.on('pointerout', () => {
+        background.setScale(1)
+      })
+
+      background.on('pointerdown', () => {
+        this.checkAnswer(button)
+      })
+
+      this.answerButtons.push(button)
+    }
+  }
+
+  private startNewProblem(): void {
+    this.isAnswerLocked = false
+    this.problem = generateAdditionProblem()
+
+    this.problemText.setText(
+      `${this.problem.left} + ${this.problem.right} = ?`,
+    )
+
+    this.feedbackText.setText('Порахуй їжачків')
+    this.feedbackText.setColor('#31533a')
+
+    this.renderAnswerButtons()
+    this.createHedgehogGroups()
+  }
+
+  private renderAnswerButtons(): void {
+    this.answerButtons.forEach((button, index) => {
+      const value = this.problem.options[index]
+
+      button.value = value
+      button.text.setText(String(value))
+      button.background
+        .setFillStyle(0xf7bc58)
+        .setStrokeStyle(4, 0xbd702a)
+        .setScale(1)
+    })
+  }
+
+  private createHedgehogGroups(): void {
+    this.destroyHedgehogs()
+
+    const { width } = this.scale
+    const groupY = 385
+
+    this.createGroup(
+      this.problem.left,
+      width * 0.25,
+      groupY,
+      'right',
+    )
+
+    this.createGroup(
+      this.problem.right,
+      width * 0.75,
+      groupY,
+      'left',
+    )
+  }
+
+  private createGroup(
+    count: number,
+    centerX: number,
+    y: number,
+    direction: 'left' | 'right',
+  ): void {
+    const spacing = count >= 5 ? 74 : 86
+    const totalWidth = (count - 1) * spacing
+    const startX = centerX - totalWidth / 2
+
+    for (let index = 0; index < count; index += 1) {
+      const hedgehog = new Hedgehog(this, {
+        x: startX + index * spacing,
+        y: y + (index % 2) * 8,
+        scale: count >= 5 ? 0.55 : 0.66,
+        direction,
+      })
+
+      this.hedgehogs.push(hedgehog)
+
+      this.tweens.add({
+        targets: hedgehog,
+        x:
+          hedgehog.x +
+          (direction === 'right' ? 26 : -26),
+        duration: 2200 + index * 90,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.InOut',
+      })
+    }
+  }
+
+  private checkAnswer(button: AnswerButton): void {
+    if (this.isAnswerLocked) {
+      return
+    }
+
+    if (button.value === this.problem.answer) {
+      this.handleCorrectAnswer(button)
+      return
+    }
+
+    this.handleWrongAnswer(button)
+  }
+
+  private handleCorrectAnswer(
+    button: AnswerButton,
+  ): void {
+    this.isAnswerLocked = true
+    this.score += 1
+
+    this.appleText.setText(`🍎 ${this.score}`)
+    this.feedbackText
+      .setText('Фир-р-р! Правильно!')
+      .setColor('#28743a')
+
+    button.background
+      .setFillStyle(0x9ddc7a)
+      .setStrokeStyle(4, 0x4f9d54)
+
+    this.hedgehogs.forEach((hedgehog) => {
+      hedgehog.celebrate()
+    })
+
+    this.time.delayedCall(1400, () => {
+      this.startNewProblem()
+    })
+  }
+
+  private handleWrongAnswer(
+    button: AnswerButton,
+  ): void {
+    this.feedbackText
+      .setText('Порахуй ще раз')
+      .setColor('#9b552f')
+
+    button.background
+      .setFillStyle(0xf3a392)
+      .setStrokeStyle(4, 0xb96355)
+
+    this.hedgehogs.forEach((hedgehog) => {
+      hedgehog.reactToMistake()
+    })
+
+    this.time.delayedCall(650, () => {
+      button.background
+        .setFillStyle(0xf7bc58)
+        .setStrokeStyle(4, 0xbd702a)
+
+      this.feedbackText
+        .setText('Спробуй іншу відповідь')
+        .setColor('#31533a')
+    })
+  }
+
+  private destroyHedgehogs(): void {
+    this.hedgehogs.forEach((hedgehog) => {
+      hedgehog.destroy()
+    })
+
+    this.hedgehogs = []
   }
 
   private createCloud(
@@ -83,19 +371,18 @@ export class PlayScene extends Phaser.Scene {
   ): void {
     const cloud = this.add.container(x, y)
 
-    const parts: Phaser.GameObjects.Arc[] = [
+    cloud.add([
       this.add.circle(-45, 12, 27, 0xffffff, 0.9),
       this.add.circle(-12, -2, 39, 0xffffff, 0.92),
       this.add.circle(28, 8, 31, 0xffffff, 0.9),
       this.add.circle(58, 17, 23, 0xffffff, 0.88),
-    ]
+    ])
 
-    cloud.add(parts)
     cloud.setScale(scale)
 
     this.tweens.add({
       targets: cloud,
-      x: x + 45,
+      x: x + 35,
       duration: 7000,
       yoyo: true,
       repeat: -1,
@@ -104,290 +391,33 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private createFlowers(): void {
-    const flowerPositions = [
-      { x: 105, y: 520, color: 0xffef8a },
-      { x: 210, y: 610, color: 0xffffff },
-      { x: 360, y: 525, color: 0xffb3c7 },
-      { x: 940, y: 535, color: 0xffffff },
-      { x: 1080, y: 625, color: 0xffef8a },
-      { x: 1180, y: 510, color: 0xffb3c7 },
+    const positions = [
+      [90, 485],
+      [195, 535],
+      [350, 500],
+      [925, 505],
+      [1080, 545],
+      [1185, 490],
     ]
 
-    flowerPositions.forEach(({ x, y, color }, index) => {
+    positions.forEach(([x, y], index) => {
       const flower = this.add.container(x, y)
 
-      const stem = this.add
-        .rectangle(0, 20, 5, 42, 0x43843f)
-        .setOrigin(0.5)
+      const color =
+        index % 3 === 0
+          ? 0xffef8a
+          : index % 3 === 1
+            ? 0xffffff
+            : 0xffb3c7
 
-      const petals = [
-        this.add.circle(-9, 0, 9, color),
-        this.add.circle(9, 0, 9, color),
-        this.add.circle(0, -9, 9, color),
-        this.add.circle(0, 9, 9, color),
-      ]
-
-      const center = this.add.circle(0, 0, 7, 0xe59b38)
-
-      flower.add([stem, ...petals, center])
-
-      this.tweens.add({
-        targets: flower,
-        angle: index % 2 === 0 ? 4 : -4,
-        duration: 1300 + index * 100,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.InOut',
-      })
-    })
-  }
-
-  private createTitle(): void {
-    const { width } = this.scale
-
-    this.add
-      .text(width / 2, 62, 'Калькулятор їжачків', {
-        color: '#294b32',
-        fontFamily:
-          '"Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif',
-        fontSize: '44px',
-        fontStyle: 'bold',
-        stroke: '#ffffff',
-        strokeThickness: 7,
-      })
-      .setOrigin(0.5)
-  }
-
-  private createHedgehog(): void {
-    const { width, height } = this.scale
-
-    this.hedgehog = this.add.container(
-      width / 2,
-      height * 0.66,
-    )
-
-    // Тінь
-    const shadow = this.add.ellipse(
-      0,
-      86,
-      185,
-      35,
-      0x31502d,
-      0.2,
-    )
-
-    // Голки
-    const spikes = this.add.graphics()
-
-    spikes.fillStyle(0x684d3c, 1)
-    spikes.beginPath()
-    spikes.moveTo(-105, 50)
-    spikes.lineTo(-125, 4)
-    spikes.lineTo(-87, 8)
-    spikes.lineTo(-102, -42)
-    spikes.lineTo(-62, -25)
-    spikes.lineTo(-55, -78)
-    spikes.lineTo(-18, -47)
-    spikes.lineTo(8, -91)
-    spikes.lineTo(28, -45)
-    spikes.lineTo(75, -72)
-    spikes.lineTo(71, -24)
-    spikes.lineTo(116, -32)
-    spikes.lineTo(91, 12)
-    spikes.lineTo(122, 39)
-    spikes.lineTo(76, 64)
-    spikes.closePath()
-    spikes.fillPath()
-
-    // Тіло
-    const body = this.add.ellipse(
-      0,
-      18,
-      205,
-      145,
-      0x9a7152,
-    )
-
-    // Мордочка
-    const face = this.add.ellipse(
-      48,
-      3,
-      125,
-      113,
-      0xe7bd8b,
-    )
-
-    // Вушко
-    const ear = this.add.circle(
-      18,
-      -43,
-      22,
-      0xd99d72,
-    )
-
-    const innerEar = this.add.circle(
-      18,
-      -43,
-      11,
-      0xf1bdac,
-    )
-
-    // Око
-    const eyeWhite = this.add.ellipse(
-      58,
-      -14,
-      27,
-      34,
-      0xffffff,
-    )
-
-    const eye = this.add.circle(
-      62,
-      -10,
-      8,
-      0x273028,
-    )
-
-    const eyeLight = this.add.circle(
-      65,
-      -14,
-      3,
-      0xffffff,
-    )
-
-    // Носик
-    const nose = this.add.ellipse(
-      111,
-      12,
-      35,
-      29,
-      0x26302a,
-    )
-
-    const noseLight = this.add.ellipse(
-      105,
-      6,
-      9,
-      6,
-      0xffffff,
-      0.65,
-    )
-
-    // Усмішка
-    const smile = this.add.graphics()
-
-    smile.lineStyle(4, 0x6e4939, 1)
-    smile.beginPath()
-    smile.arc(
-      70,
-      18,
-      18,
-      Phaser.Math.DegToRad(15),
-      Phaser.Math.DegToRad(125),
-    )
-    smile.strokePath()
-
-    // Лапки
-    const leftFoot = this.add.ellipse(
-      -44,
-      72,
-      55,
-      25,
-      0xd7a172,
-    )
-
-    const rightFoot = this.add.ellipse(
-      43,
-      72,
-      55,
-      25,
-      0xd7a172,
-    )
-
-    // Передня лапка
-    const arm = this.add
-      .ellipse(62, 43, 30, 65, 0xd7a172)
-      .setRotation(-0.55)
-
-    this.hedgehog.add([
-      shadow,
-      spikes,
-      body,
-      leftFoot,
-      rightFoot,
-      face,
-      ear,
-      innerEar,
-      eyeWhite,
-      eye,
-      eyeLight,
-      nose,
-      noseLight,
-      smile,
-      arm,
-    ])
-
-    this.hedgehog.setScale(0.88)
-  }
-
-  private createAnimations(): void {
-    // Спокійне дихання
-    this.tweens.add({
-      targets: this.hedgehog,
-      scaleX: 0.9,
-      scaleY: 0.86,
-      duration: 1200,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut',
-    })
-
-    // Ледь помітне погойдування
-    this.tweens.add({
-      targets: this.hedgehog,
-      angle: 2,
-      duration: 1700,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut',
-    })
-  }
-
-  private createStatusText(): void {
-    const { width, height } = this.scale
-
-    const panel = this.add
-      .rectangle(
-        width / 2,
-        height - 62,
-        500,
-        70,
-        0xffffff,
-        0.86,
-      )
-      .setStrokeStyle(3, 0x91bd70, 0.75)
-
-    this.add
-      .text(
-        width / 2,
-        height - 62,
-        'Перша ігрова сцена працює!',
-        {
-          color: '#31533a',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '26px',
-          fontStyle: 'bold',
-        },
-      )
-      .setOrigin(0.5)
-
-    this.tweens.add({
-      targets: panel,
-      alpha: 0.7,
-      duration: 1600,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut',
+      flower.add([
+        this.add.rectangle(0, 18, 5, 38, 0x43843f),
+        this.add.circle(-8, 0, 8, color),
+        this.add.circle(8, 0, 8, color),
+        this.add.circle(0, -8, 8, color),
+        this.add.circle(0, 8, 8, color),
+        this.add.circle(0, 0, 6, 0xe59b38),
+      ])
     })
   }
 }
