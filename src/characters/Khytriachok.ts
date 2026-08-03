@@ -1,4 +1,9 @@
-﻿import Phaser from 'phaser'
+import Phaser from 'phaser'
+import { AnimationController } from '../controllers/AnimationController'
+import {
+  CharacterState,
+  type CharacterState as CharacterStateValue,
+} from './CharacterState'
 
 export type KhytriachokOptions = {
   x: number
@@ -9,6 +14,7 @@ export type KhytriachokOptions = {
 
 export class Khytriachok extends Phaser.GameObjects.Container {
   private readonly baseScale: number
+  private readonly animationController: AnimationController
 
   constructor(
     scene: Phaser.Scene,
@@ -19,44 +25,60 @@ export class Khytriachok extends Phaser.GameObjects.Container {
     this.baseScale = options.scale ?? 1
 
     scene.add.existing(this)
-
     this.createBody()
-    this.setScale(this.baseScale)
 
     if (options.direction === 'left') {
       this.setScale(-this.baseScale, this.baseScale)
+    } else {
+      this.setScale(this.baseScale)
     }
 
-    this.startIdleAnimation()
+    this.animationController = new AnimationController(
+      scene,
+      this,
+      this.baseScale,
+    )
+
+    this.setCharacterState(CharacterState.Idle)
+  }
+
+  public getCharacterState(): CharacterStateValue | null {
+    return this.animationController.getState()
+  }
+
+  public setCharacterState(
+    state: CharacterStateValue,
+  ): void {
+    this.animationController.setCharacterState(state)
   }
 
   public celebrate(): void {
-    this.scene.tweens.killTweensOf(this)
-
-    this.scene.tweens.add({
-      targets: this,
-      y: this.y - 22,
-      angle: 6,
-      duration: 170,
-      yoyo: true,
-      repeat: 3,
-      ease: 'Sine.InOut',
-      onComplete: () => {
-        this.setAngle(0)
-        this.startIdleAnimation()
-      },
-    })
+    this.setCharacterState(CharacterState.Celebrating)
   }
 
   public reactToMistake(): void {
-    this.scene.tweens.add({
-      targets: this,
-      x: this.x - 7,
-      duration: 60,
-      yoyo: true,
-      repeat: 4,
-      ease: 'Sine.InOut',
-    })
+    this.setCharacterState(CharacterState.Mistake)
+  }
+
+  public startWalking(): void {
+    this.setCharacterState(CharacterState.Walking)
+  }
+
+  public startThinking(): void {
+    this.setCharacterState(CharacterState.Thinking)
+  }
+
+  public fallAsleep(): void {
+    this.setCharacterState(CharacterState.Sleeping)
+  }
+
+  public wakeUp(): void {
+    this.setCharacterState(CharacterState.Idle)
+  }
+
+  public override destroy(fromScene?: boolean): void {
+    this.animationController.destroy()
+    super.destroy(fromScene)
   }
 
   private createBody(): void {
@@ -210,16 +232,5 @@ export class Khytriachok extends Phaser.GameObjects.Container {
       smile,
       arm,
     ])
-  }
-
-  private startIdleAnimation(): void {
-    this.scene.tweens.add({
-      targets: this,
-      scaleY: this.baseScale * 0.96,
-      duration: 850,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut',
-    })
   }
 }
