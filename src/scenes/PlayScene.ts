@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser'
+import Phaser from 'phaser'
 import { Khytriachok } from '../characters/Khytriachok'
 import {
   generateAdditionProblem,
@@ -90,7 +90,7 @@ export class PlayScene extends Phaser.Scene {
     const { width } = this.scale
 
     this.add
-      .text(width / 2, 48, 'РљР°Р»СЊРєСѓР»СЏС‚РѕСЂ С—Р¶Р°С‡РєС–РІ', {
+      .text(width / 2, 48, 'Калькулятор їжачків', {
         color: '#294b32',
         fontFamily:
           '"Trebuchet MS", Arial, sans-serif',
@@ -113,7 +113,7 @@ export class PlayScene extends Phaser.Scene {
     scorePanel.setStrokeStyle(3, 0xe8bd61)
 
     this.appleText = this.add
-      .text(width - 120, 55, 'рџЌЋ 0', {
+      .text(width - 120, 55, '🍎 0', {
         color: '#604624',
         fontFamily: 'Arial, sans-serif',
         fontSize: '28px',
@@ -219,7 +219,7 @@ export class PlayScene extends Phaser.Scene {
       `${this.problem.left} + ${this.problem.right} = ?`,
     )
 
-    this.feedbackText.setText('РџРѕСЂР°С…СѓР№ С—Р¶Р°С‡РєС–РІ')
+    this.feedbackText.setText('Порахуй їжачків')
     this.feedbackText.setColor('#31533a')
 
     this.renderAnswerButtons()
@@ -312,9 +312,9 @@ export class PlayScene extends Phaser.Scene {
     this.isAnswerLocked = true
     this.score += 1
 
-    this.appleText.setText(`рџЌЋ ${this.score}`)
+    this.appleText.setText(`🍎 ${this.score}`)
     this.feedbackText
-      .setText('Р¤РёСЂ-СЂ-СЂ! РџСЂР°РІРёР»СЊРЅРѕ!')
+      .setText('Фир-р-р! Правильно!')
       .setColor('#28743a')
 
     button.background
@@ -334,7 +334,7 @@ export class PlayScene extends Phaser.Scene {
     button: AnswerButton,
   ): void {
     this.feedbackText
-      .setText('РџРѕСЂР°С…СѓР№ С‰Рµ СЂР°Р·')
+      .setText('Порахуй ще раз')
       .setColor('#9b552f')
 
     button.background
@@ -351,7 +351,7 @@ export class PlayScene extends Phaser.Scene {
         .setStrokeStyle(4, 0xbd702a)
 
       this.feedbackText
-        .setText('РЎРїСЂРѕР±СѓР№ С–РЅС€Сѓ РІС–РґРїРѕРІС–РґСЊ')
+        .setText('Спробуй іншу відповідь')
         .setColor('#31533a')
     })
   }
