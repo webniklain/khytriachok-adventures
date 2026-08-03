@@ -1,18 +1,18 @@
-import Phaser from 'phaser'
+﻿import Phaser from 'phaser'
 
-export type HedgehogOptions = {
+export type KhytriachokOptions = {
   x: number
   y: number
   scale?: number
   direction?: 'left' | 'right'
 }
 
-export class Hedgehog extends Phaser.GameObjects.Container {
+export class Khytriachok extends Phaser.GameObjects.Container {
   private readonly baseScale: number
 
   constructor(
     scene: Phaser.Scene,
-    options: HedgehogOptions,
+    options: KhytriachokOptions,
   ) {
     super(scene, options.x, options.y)
 

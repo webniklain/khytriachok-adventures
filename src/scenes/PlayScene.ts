@@ -1,5 +1,5 @@
-import Phaser from 'phaser'
-import { Hedgehog } from '../entities/Hedgehog'
+﻿import Phaser from 'phaser'
+import { Khytriachok } from '../characters/Khytriachok'
 import {
   generateAdditionProblem,
   type MathProblem,
@@ -17,7 +17,7 @@ export class PlayScene extends Phaser.Scene {
   private feedbackText!: Phaser.GameObjects.Text
   private appleText!: Phaser.GameObjects.Text
 
-  private hedgehogs: Hedgehog[] = []
+  private hedgehogs: Khytriachok[] = []
   private answerButtons: AnswerButton[] = []
 
   private score = 0
@@ -90,7 +90,7 @@ export class PlayScene extends Phaser.Scene {
     const { width } = this.scale
 
     this.add
-      .text(width / 2, 48, 'Калькулятор їжачків', {
+      .text(width / 2, 48, 'РљР°Р»СЊРєСѓР»СЏС‚РѕСЂ С—Р¶Р°С‡РєС–РІ', {
         color: '#294b32',
         fontFamily:
           '"Trebuchet MS", Arial, sans-serif',
@@ -113,7 +113,7 @@ export class PlayScene extends Phaser.Scene {
     scorePanel.setStrokeStyle(3, 0xe8bd61)
 
     this.appleText = this.add
-      .text(width - 120, 55, '🍎 0', {
+      .text(width - 120, 55, 'рџЌЋ 0', {
         color: '#604624',
         fontFamily: 'Arial, sans-serif',
         fontSize: '28px',
@@ -219,7 +219,7 @@ export class PlayScene extends Phaser.Scene {
       `${this.problem.left} + ${this.problem.right} = ?`,
     )
 
-    this.feedbackText.setText('Порахуй їжачків')
+    this.feedbackText.setText('РџРѕСЂР°С…СѓР№ С—Р¶Р°С‡РєС–РІ')
     this.feedbackText.setColor('#31533a')
 
     this.renderAnswerButtons()
@@ -271,7 +271,7 @@ export class PlayScene extends Phaser.Scene {
     const startX = centerX - totalWidth / 2
 
     for (let index = 0; index < count; index += 1) {
-      const hedgehog = new Hedgehog(this, {
+      const hedgehog = new Khytriachok(this, {
         x: startX + index * spacing,
         y: y + (index % 2) * 8,
         scale: count >= 5 ? 0.55 : 0.66,
@@ -312,9 +312,9 @@ export class PlayScene extends Phaser.Scene {
     this.isAnswerLocked = true
     this.score += 1
 
-    this.appleText.setText(`🍎 ${this.score}`)
+    this.appleText.setText(`рџЌЋ ${this.score}`)
     this.feedbackText
-      .setText('Фир-р-р! Правильно!')
+      .setText('Р¤РёСЂ-СЂ-СЂ! РџСЂР°РІРёР»СЊРЅРѕ!')
       .setColor('#28743a')
 
     button.background
@@ -334,7 +334,7 @@ export class PlayScene extends Phaser.Scene {
     button: AnswerButton,
   ): void {
     this.feedbackText
-      .setText('Порахуй ще раз')
+      .setText('РџРѕСЂР°С…СѓР№ С‰Рµ СЂР°Р·')
       .setColor('#9b552f')
 
     button.background
@@ -351,7 +351,7 @@ export class PlayScene extends Phaser.Scene {
         .setStrokeStyle(4, 0xbd702a)
 
       this.feedbackText
-        .setText('Спробуй іншу відповідь')
+        .setText('РЎРїСЂРѕР±СѓР№ С–РЅС€Сѓ РІС–РґРїРѕРІС–РґСЊ')
         .setColor('#31533a')
     })
   }
