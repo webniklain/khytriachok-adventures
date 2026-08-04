@@ -6,22 +6,41 @@ import {
 
 type AnimationCompleteCallback = () => void
 
+export type CharacterAnimationParts = {
+  leftFoot: Phaser.GameObjects.Ellipse
+  rightFoot: Phaser.GameObjects.Ellipse
+  arm: Phaser.GameObjects.Ellipse
+}
+
 export class AnimationController {
   private currentState: CharacterStateValue | null = null
+
   private readonly directionX: 1 | -1
   private readonly scene: Phaser.Scene
-  private readonly target: Phaser.GameObjects.Container
+  private readonly visualRoot: Phaser.GameObjects.Container
   private readonly baseScale: number
+  private readonly parts: CharacterAnimationParts
+
+  private readonly leftFootBaseAngle: number
+  private readonly rightFootBaseAngle: number
+  private readonly armBaseAngle: number
 
   constructor(
     scene: Phaser.Scene,
-    target: Phaser.GameObjects.Container,
+    visualRoot: Phaser.GameObjects.Container,
     baseScale: number,
+    parts: CharacterAnimationParts,
   ) {
     this.scene = scene
-    this.target = target
+    this.visualRoot = visualRoot
     this.baseScale = baseScale
-    this.directionX = target.scaleX < 0 ? -1 : 1
+    this.parts = parts
+
+    this.directionX = 1
+
+    this.leftFootBaseAngle = parts.leftFoot.angle
+    this.rightFootBaseAngle = parts.rightFoot.angle
+    this.armBaseAngle = parts.arm.angle
   }
 
   public getState(): CharacterStateValue | null {
@@ -70,6 +89,16 @@ export class AnimationController {
     }
   }
 
+  public beginExternalWalk(): void {
+    this.stopCurrentAnimation()
+    this.currentState = CharacterState.Walking
+    this.resetTransform()
+  }
+
+  public endExternalWalk(): void {
+    this.setCharacterState(CharacterState.Idle)
+  }
+
   public destroy(): void {
     this.stopCurrentAnimation()
     this.currentState = null
@@ -77,7 +106,7 @@ export class AnimationController {
 
   private playIdle(): void {
     this.scene.tweens.add({
-      targets: this.target,
+      targets: this.visualRoot,
       scaleY: this.baseScale * 0.96,
       duration: 900,
       yoyo: true,
@@ -86,9 +115,18 @@ export class AnimationController {
     })
 
     this.scene.tweens.add({
-      targets: this.target,
+      targets: this.visualRoot,
       angle: 1.4,
       duration: 1500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+    })
+
+    this.scene.tweens.add({
+      targets: this.parts.arm,
+      angle: this.armBaseAngle + 4,
+      duration: 1100,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.InOut',
@@ -96,13 +134,47 @@ export class AnimationController {
   }
 
   private playWalking(): void {
-    const startY = this.target.y
+    const startY = this.visualRoot.y
 
     this.scene.tweens.add({
-      targets: this.target,
-      y: startY - 7,
-      angle: 3 * this.directionX,
-      duration: 190,
+      targets: this.visualRoot,
+      y: startY - 13,
+      angle: 5 * this.directionX,
+      scaleX: 1.04,
+      scaleY: 0.94,
+      duration: 180,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+    })
+
+    this.scene.tweens.add({
+      targets: this.parts.leftFoot,
+      angle: this.leftFootBaseAngle + 38,
+      x: '-=8',
+      y: '-=5',
+      duration: 180,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+    })
+
+    this.scene.tweens.add({
+      targets: this.parts.rightFoot,
+      angle: this.rightFootBaseAngle - 38,
+      x: '+=8',
+      y: '-=5',
+      duration: 180,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+      delay: 180,
+    })
+
+    this.scene.tweens.add({
+      targets: this.parts.arm,
+      angle: this.armBaseAngle + 38,
+      duration: 180,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.InOut',
@@ -110,13 +182,23 @@ export class AnimationController {
   }
 
   private playThinking(): void {
-    const startY = this.target.y
+    const startY = this.visualRoot.y
 
     this.scene.tweens.add({
-      targets: this.target,
-      angle: -5 * this.directionX,
-      y: startY + 3,
-      duration: 700,
+      targets: this.visualRoot,
+      angle: -6 * this.directionX,
+      y: startY + 4,
+      duration: 650,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+    })
+
+    this.scene.tweens.add({
+      targets: this.parts.arm,
+      angle: this.armBaseAngle - 20,
+      y: this.parts.arm.y - 5,
+      duration: 500,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.InOut',
@@ -126,51 +208,60 @@ export class AnimationController {
   private playCelebrating(
     onComplete?: AnimationCompleteCallback,
   ): void {
-    const startY = this.target.y
+    const startY = this.visualRoot.y
 
     this.scene.tweens.add({
-      targets: this.target,
-      y: startY - 24,
-      angle: 7 * this.directionX,
-      duration: 170,
+      targets: this.visualRoot,
+      y: startY - 28,
+      angle: 8 * this.directionX,
+      duration: 160,
       yoyo: true,
       repeat: 3,
       ease: 'Sine.InOut',
       onComplete: () => {
-        if (!this.target.active) {
+        if (!this.visualRoot.active) {
           return
         }
 
-        this.target.setY(startY)
+        this.visualRoot.setY(startY)
         this.setCharacterState(CharacterState.Idle)
         onComplete?.()
       },
+    })
+
+    this.scene.tweens.add({
+      targets: this.parts.arm,
+      angle: this.armBaseAngle + 45,
+      duration: 110,
+      yoyo: true,
+      repeat: 6,
+      ease: 'Sine.InOut',
     })
   }
 
   private playMistake(
     onComplete?: AnimationCompleteCallback,
   ): void {
-    const startX = this.target.x
+    const startX = this.visualRoot.x
 
     this.scene.tweens.add({
-      targets: this.target,
-      x: startX - 7,
-      angle: -3 * this.directionX,
+      targets: this.visualRoot,
+      x: startX - 8,
+      angle: -4 * this.directionX,
       duration: 65,
       yoyo: true,
       repeat: 4,
       ease: 'Sine.InOut',
       onComplete: () => {
-        if (!this.target.active) {
+        if (!this.visualRoot.active) {
           return
         }
 
-        this.target.setX(startX)
+        this.visualRoot.setX(startX)
         this.setCharacterState(CharacterState.Thinking)
 
-        this.scene.time.delayedCall(450, () => {
-          if (!this.target.active) {
+        this.scene.time.delayedCall(500, () => {
+          if (!this.visualRoot.active) {
             return
           }
 
@@ -186,10 +277,10 @@ export class AnimationController {
 
   private playSleeping(): void {
     this.scene.tweens.add({
-      targets: this.target,
-      scaleY: this.baseScale * 0.88,
-      angle: -4 * this.directionX,
-      duration: 1400,
+      targets: this.visualRoot,
+      scaleY: this.baseScale * 0.86,
+      angle: -6 * this.directionX,
+      duration: 1300,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.InOut',
@@ -197,14 +288,30 @@ export class AnimationController {
   }
 
   private stopCurrentAnimation(): void {
-    this.scene.tweens.killTweensOf(this.target)
+    this.scene.tweens.killTweensOf(this.visualRoot)
+    this.scene.tweens.killTweensOf(this.parts.leftFoot)
+    this.scene.tweens.killTweensOf(this.parts.rightFoot)
+    this.scene.tweens.killTweensOf(this.parts.arm)
   }
 
   private resetTransform(): void {
-    this.target.setAngle(0)
-    this.target.setScale(
+    this.visualRoot.setAngle(0)
+
+    this.visualRoot.setScale(
       this.directionX * this.baseScale,
       this.baseScale,
     )
+
+    this.parts.leftFoot
+      .setAngle(this.leftFootBaseAngle)
+      .setPosition(-28, 45)
+
+    this.parts.rightFoot
+      .setAngle(this.rightFootBaseAngle)
+      .setPosition(26, 45)
+
+    this.parts.arm
+      .setAngle(this.armBaseAngle)
+      .setPosition(38, 27)
   }
 }

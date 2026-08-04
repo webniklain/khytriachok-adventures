@@ -280,16 +280,14 @@ export class PlayScene extends Phaser.Scene {
 
       this.hedgehogs.push(hedgehog)
 
-      this.tweens.add({
-        targets: hedgehog,
-        x:
-          hedgehog.x +
-          (direction === 'right' ? 26 : -26),
-        duration: 2200 + index * 90,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.InOut',
-      })
+      const walkingDistance =
+        direction === 'right' ? 125 : -125
+
+      hedgehog.walkTo(
+        hedgehog.x + walkingDistance,
+        3200 + index * 80,
+        500 + index * 80,
+      )
     }
   }
 
