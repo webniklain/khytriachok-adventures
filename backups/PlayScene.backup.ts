@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { Khytriachok } from '../characters/Khytriachok'
 import {
-  generateMathProblem,
+  generateAdditionProblem,
   type MathProblem,
 } from '../math/MathProblem'
 
@@ -90,7 +90,7 @@ export class PlayScene extends Phaser.Scene {
     const { width } = this.scale
 
     this.add
-      .text(width / 2, 48, '\u041f\u0440\u0438\u0433\u043e\u0434\u0438 \u0407\u0436\u0430\u0447\u043a\u0430 \u0425\u0438\u0442\u0440\u044f\u0447\u043a\u0430', {
+      .text(width / 2, 48, 'Калькулятор їжачків', {
         color: '#294b32',
         fontFamily:
           '"Trebuchet MS", Arial, sans-serif',
@@ -220,18 +220,14 @@ export class PlayScene extends Phaser.Scene {
       })
     })
 
-    this.problem = generateMathProblem()
+    this.problem = generateAdditionProblem()
 
     this.problemText.setText(
-      `${this.problem.left} ${this.problem.operator} ${this.problem.right} = ?`,
+      `${this.problem.left} + ${this.problem.right} = ?`,
     )
 
     this.feedbackText
-      .setText(
-        this.problem.operator === '+'
-          ? '\u041f\u043e\u0440\u0430\u0445\u0443\u0439 \u0434\u0432\u0456 \u0433\u0440\u0443\u043f\u0438 \u0457\u0436\u0430\u0447\u043a\u0456\u0432'
-          : '\u0421\u043a\u0456\u043b\u044c\u043a\u0438 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0437\u0430\u043b\u0438\u0448\u0438\u0442\u044c\u0441\u044f?',
-      )
+      .setText('??????? ???????')
       .setColor('#31533a')
 
     this.renderAnswerButtons()
@@ -257,29 +253,18 @@ export class PlayScene extends Phaser.Scene {
     const { width } = this.scale
     const groupY = 385
 
-    if (this.problem.operator === '+') {
-      this.createGroup(
-        this.problem.left,
-        width * 0.25,
-        groupY,
-        'right',
-      )
-
-      this.createGroup(
-        this.problem.right,
-        width * 0.75,
-        groupY,
-        'left',
-      )
-
-      return
-    }
-
     this.createGroup(
       this.problem.left,
-      width / 2,
+      width * 0.25,
       groupY,
       'right',
+    )
+
+    this.createGroup(
+      this.problem.right,
+      width * 0.75,
+      groupY,
+      'left',
     )
   }
 
@@ -344,45 +329,6 @@ export class PlayScene extends Phaser.Scene {
     })
   }
 
-  private subtractHedgehogs(
-    onComplete: () => void,
-  ): void {
-    const leavingCount = this.problem.right
-    const firstLeavingIndex =
-      this.hedgehogs.length - leavingCount
-
-    const leavingHedgehogs =
-      this.hedgehogs.slice(firstLeavingIndex)
-
-    if (leavingHedgehogs.length === 0) {
-      onComplete()
-      return
-    }
-
-    let completedCount = 0
-
-    leavingHedgehogs.forEach((hedgehog, index) => {
-      hedgehog.walkTo(
-        this.scale.width + 130 + index * 65,
-        1700 + index * 80,
-        index * 90,
-        () => {
-          completedCount += 1
-
-          if (
-            completedCount === leavingHedgehogs.length
-          ) {
-            leavingHedgehogs.forEach((item) => {
-              item.setVisible(false)
-            })
-
-            onComplete()
-          }
-        },
-      )
-    })
-  }
-
   private checkAnswer(button: AnswerButton): void {
     if (this.isAnswerLocked) {
       return
@@ -402,9 +348,11 @@ export class PlayScene extends Phaser.Scene {
     this.isAnswerLocked = true
     this.score += 1
 
-    this.appleText.setText(
-      `\u{1F34E} ${this.score}`,
-    )
+    this.appleText.setText(`?? ${this.score}`)
+
+    this.feedbackText
+      .setText('?????????! ?????? ????? ???? ?? ??????')
+      .setColor('#28743a')
 
     button.background
       .setFillStyle(0x9ddc7a)
@@ -414,52 +362,24 @@ export class PlayScene extends Phaser.Scene {
       answerButton.background.disableInteractive()
     })
 
-    if (this.problem.operator === '+') {
+    this.gatherHedgehogs(() => {
+      this.problemText.setText(
+        `${this.problem.left} + ${this.problem.right} = ${this.problem.answer}`,
+      )
+
       this.feedbackText
         .setText(
-          '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0407\u0436\u0430\u0447\u043a\u0438 \u0437\u0431\u0438\u0440\u0430\u044e\u0442\u044c\u0441\u044f \u0440\u0430\u0437\u043e\u043c',
+          `???-?-?! ????? ???????: ${this.problem.answer}`,
         )
         .setColor('#28743a')
 
-      this.gatherHedgehogs(() => {
-        this.finishCorrectAnswer()
-      })
-
-      return
-    }
-
-    this.feedbackText
-      .setText(
-        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0427\u0430\u0441\u0442\u0438\u043d\u0430 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0439\u0434\u0435',
-      )
-      .setColor('#28743a')
-
-    this.subtractHedgehogs(() => {
-      this.finishCorrectAnswer()
-    })
-  }
-
-  private finishCorrectAnswer(): void {
-    this.problemText.setText(
-      `${this.problem.left} ${this.problem.operator} ${this.problem.right} = ${this.problem.answer}`,
-    )
-
-    this.feedbackText
-      .setText(
-        this.problem.operator === '+'
-          ? `\u0424\u0438\u0440-\u0440-\u0440! \u0420\u0430\u0437\u043e\u043c \u0457\u0436\u0430\u0447\u043a\u0456\u0432: ${this.problem.answer}`
-          : `\u0424\u0438\u0440-\u0440-\u0440! \u0417\u0430\u043b\u0438\u0448\u0438\u043b\u043e\u0441\u044f \u0457\u0436\u0430\u0447\u043a\u0456\u0432: ${this.problem.answer}`,
-      )
-      .setColor('#28743a')
-
-    this.hedgehogs
-      .filter((hedgehog) => hedgehog.visible)
-      .forEach((hedgehog) => {
+      this.hedgehogs.forEach((hedgehog) => {
         hedgehog.celebrate()
       })
 
-    this.time.delayedCall(1900, () => {
-      this.startNewProblem()
+      this.time.delayedCall(1900, () => {
+        this.startNewProblem()
+      })
     })
   }
 
@@ -467,9 +387,7 @@ export class PlayScene extends Phaser.Scene {
     button: AnswerButton,
   ): void {
     this.feedbackText
-      .setText(
-        '\u0414\u0430\u0432\u0430\u0439 \u0449\u0435 \u0440\u0430\u0437 \u043f\u043e\u0440\u0430\u0445\u0443\u0454\u043c\u043e',
-      )
+      .setText('Порахуй ще раз')
       .setColor('#9b552f')
 
     button.background
@@ -486,9 +404,7 @@ export class PlayScene extends Phaser.Scene {
         .setStrokeStyle(4, 0xbd702a)
 
       this.feedbackText
-        .setText(
-          '\u0421\u043f\u0440\u043e\u0431\u0443\u0439 \u0456\u043d\u0448\u0443 \u0432\u0456\u0434\u043f\u043e\u0432\u0456\u0434\u044c',
-        )
+        .setText('Спробуй іншу відповідь')
         .setColor('#31533a')
     })
   }

@@ -1,6 +1,4 @@
-import Phaser from 'phaser'
-
-export type MathOperator = '+'
+export type MathOperator = '+' | '-'
 
 export type MathProblem = {
   left: number
@@ -11,14 +9,18 @@ export type MathProblem = {
 }
 
 const MIN_NUMBER = 1
-const MAX_TOTAL = 10
+const MAX_NUMBER = 10
 const OPTIONS_COUNT = 4
+
+function randomBetween(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
 function shuffle<T>(items: T[]): T[] {
   const result = [...items]
 
   for (let index = result.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1))
+    const randomIndex = randomBetween(0, index)
 
     ;[result[index], result[randomIndex]] = [
       result[randomIndex],
@@ -33,10 +35,9 @@ function createAnswerOptions(answer: number): number[] {
   const options = new Set<number>([answer])
 
   while (options.size < OPTIONS_COUNT) {
-    const offset = Math.floor(Math.random() * 7) - 3
-    const candidate = answer + offset
+    const candidate = answer + randomBetween(-3, 3)
 
-    if (candidate >= 0 && candidate <= MAX_TOTAL) {
+    if (candidate >= 0 && candidate <= MAX_NUMBER) {
       options.add(candidate)
     }
   }
@@ -44,13 +45,9 @@ function createAnswerOptions(answer: number): number[] {
   return shuffle([...options])
 }
 
-export function generateAdditionProblem(): MathProblem {
-  const left = Phaser.Math.Between(MIN_NUMBER, MAX_TOTAL - 1)
-  const right = Phaser.Math.Between(
-    MIN_NUMBER,
-    MAX_TOTAL - left,
-  )
-
+function generateAdditionProblem(): MathProblem {
+  const left = randomBetween(MIN_NUMBER, MAX_NUMBER - 1)
+  const right = randomBetween(MIN_NUMBER, MAX_NUMBER - left)
   const answer = left + right
 
   return {
@@ -60,4 +57,24 @@ export function generateAdditionProblem(): MathProblem {
     answer,
     options: createAnswerOptions(answer),
   }
+}
+
+function generateSubtractionProblem(): MathProblem {
+  const left = randomBetween(2, MAX_NUMBER)
+  const right = randomBetween(1, left)
+  const answer = left - right
+
+  return {
+    left,
+    right,
+    operator: '-',
+    answer,
+    options: createAnswerOptions(answer),
+  }
+}
+
+export function generateMathProblem(): MathProblem {
+  return Math.random() < 0.5
+    ? generateAdditionProblem()
+    : generateSubtractionProblem()
 }
