@@ -213,14 +213,22 @@ export class PlayScene extends Phaser.Scene {
 
   private startNewProblem(): void {
     this.isAnswerLocked = false
+
+    this.answerButtons.forEach((button) => {
+      button.background.setInteractive({
+        useHandCursor: true,
+      })
+    })
+
     this.problem = generateAdditionProblem()
 
     this.problemText.setText(
       `${this.problem.left} + ${this.problem.right} = ?`,
     )
 
-    this.feedbackText.setText('Порахуй їжачків')
-    this.feedbackText.setColor('#31533a')
+    this.feedbackText
+      .setText('??????? ???????')
+      .setColor('#31533a')
 
     this.renderAnswerButtons()
     this.createHedgehogGroups()
@@ -279,16 +287,46 @@ export class PlayScene extends Phaser.Scene {
       })
 
       this.hedgehogs.push(hedgehog)
-
-      const walkingDistance =
-        direction === 'right' ? 125 : -125
-
-      hedgehog.walkTo(
-        hedgehog.x + walkingDistance,
-        3200 + index * 80,
-        500 + index * 80,
-      )
     }
+  }
+
+  private gatherHedgehogs(
+    onComplete: () => void,
+  ): void {
+    const { width } = this.scale
+    const total = this.hedgehogs.length
+
+    if (total === 0) {
+      onComplete()
+      return
+    }
+
+    const spacing =
+      total >= 8
+        ? 67
+        : total >= 6
+          ? 74
+          : 86
+
+    const totalWidth = (total - 1) * spacing
+    const startX = width / 2 - totalWidth / 2
+
+    let completedCount = 0
+
+    this.hedgehogs.forEach((hedgehog, index) => {
+      hedgehog.walkTo(
+        startX + index * spacing,
+        1700 + index * 50,
+        index * 70,
+        () => {
+          completedCount += 1
+
+          if (completedCount === total) {
+            onComplete()
+          }
+        },
+      )
+    })
   }
 
   private checkAnswer(button: AnswerButton): void {
@@ -310,21 +348,38 @@ export class PlayScene extends Phaser.Scene {
     this.isAnswerLocked = true
     this.score += 1
 
-    this.appleText.setText(`🍎 ${this.score}`)
+    this.appleText.setText(`?? ${this.score}`)
+
     this.feedbackText
-      .setText('Фир-р-р! Правильно!')
+      .setText('?????????! ?????? ????? ???? ?? ??????')
       .setColor('#28743a')
 
     button.background
       .setFillStyle(0x9ddc7a)
       .setStrokeStyle(4, 0x4f9d54)
 
-    this.hedgehogs.forEach((hedgehog) => {
-      hedgehog.celebrate()
+    this.answerButtons.forEach((answerButton) => {
+      answerButton.background.disableInteractive()
     })
 
-    this.time.delayedCall(1400, () => {
-      this.startNewProblem()
+    this.gatherHedgehogs(() => {
+      this.problemText.setText(
+        `${this.problem.left} + ${this.problem.right} = ${this.problem.answer}`,
+      )
+
+      this.feedbackText
+        .setText(
+          `???-?-?! ????? ???????: ${this.problem.answer}`,
+        )
+        .setColor('#28743a')
+
+      this.hedgehogs.forEach((hedgehog) => {
+        hedgehog.celebrate()
+      })
+
+      this.time.delayedCall(1900, () => {
+        this.startNewProblem()
+      })
     })
   }
 

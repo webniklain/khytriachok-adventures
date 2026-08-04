@@ -76,6 +76,7 @@ export class Khytriachok extends Phaser.GameObjects.Container {
     targetX: number,
     duration: number,
     delay = 0,
+    onComplete?: () => void,
   ): void {
     this.scene.time.delayedCall(delay, () => {
       if (!this.active || this.destroyed) {
@@ -98,6 +99,7 @@ export class Khytriachok extends Phaser.GameObjects.Container {
           this.mode = 'idle'
           this.animationTime = 0
           this.resetVisual()
+          onComplete?.()
         },
       })
     })
