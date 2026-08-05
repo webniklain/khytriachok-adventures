@@ -406,26 +406,16 @@ export class PlayScene extends Phaser.Scene {
     this.destroyHedgehogs()
 
     const { width } = this.scale
-    const groupY = 455
+    const groupY = 370
     const edgePadding = 105
 
     if (this.problem.operator === '+') {
-      const total =
-        this.problem.left + this.problem.right
-
-      const maxColumns =
-        total > 7
-          ? 3
-          : 5
-
       const leftWidth = this.getGroupWidth(
         this.problem.left,
-        maxColumns,
       )
 
       const rightWidth = this.getGroupWidth(
         this.problem.right,
-        maxColumns,
       )
 
       this.createGroup(
@@ -433,7 +423,6 @@ export class PlayScene extends Phaser.Scene {
         edgePadding + leftWidth / 2,
         groupY,
         'right',
-        maxColumns,
       )
 
       this.createGroup(
@@ -441,7 +430,6 @@ export class PlayScene extends Phaser.Scene {
         width - edgePadding - rightWidth / 2,
         groupY,
         'left',
-        maxColumns,
       )
 
       return
@@ -452,7 +440,6 @@ export class PlayScene extends Phaser.Scene {
       width / 2,
       groupY,
       'right',
-      5,
     )
   }
 
@@ -488,17 +475,13 @@ export class PlayScene extends Phaser.Scene {
 
   private getRowCounts(
     count: number,
-    maxColumns = 5,
   ): number[] {
-    if (count <= maxColumns) {
+    if (count <= 5) {
       return [count]
     }
 
-    const firstRowCount =
-      Math.ceil(count / 2)
-
-    const secondRowCount =
-      count - firstRowCount
+    const firstRowCount = Math.ceil(count / 2)
+    const secondRowCount = count - firstRowCount
 
     return [
       firstRowCount,
@@ -508,16 +491,12 @@ export class PlayScene extends Phaser.Scene {
 
   private getGroupWidth(
     count: number,
-    maxColumns = 5,
   ): number {
     const { spacingX } =
       this.getHedgehogLayout(count)
 
     const longestRow = Math.max(
-      ...this.getRowCounts(
-        count,
-        maxColumns,
-      ),
+      ...this.getRowCounts(count),
     )
 
     return Math.max(
@@ -531,7 +510,6 @@ export class PlayScene extends Phaser.Scene {
     centerX: number,
     y: number,
     direction: 'left' | 'right',
-    maxColumns = 5,
   ): void {
     const {
       spacingX,
@@ -539,17 +517,13 @@ export class PlayScene extends Phaser.Scene {
       scale,
     } = this.getHedgehogLayout(count)
 
-    const rowCounts = this.getRowCounts(
-      count,
-      maxColumns,
-    )
+    const rowCounts = this.getRowCounts(count)
+
+    let characterIndex = 0
 
     rowCounts.forEach((rowCount, rowIndex) => {
       const rowWidth =
-        Math.max(
-          0,
-          (rowCount - 1) * spacingX,
-        )
+        Math.max(0, (rowCount - 1) * spacingX)
 
       const rowStartX =
         centerX - rowWidth / 2
@@ -558,12 +532,14 @@ export class PlayScene extends Phaser.Scene {
         rowCounts.length === 1
           ? y
           : y +
-            (
-              rowIndex === 0
-                ? -spacingY / 2
-                : spacingY / 2
-            )
+            (rowIndex === 0
+              ? -spacingY / 2
+              : spacingY / 2)
 
+      /*
+       * Коротший нижній ряд трохи зміщуємо,
+       * щоб група виглядала природніше.
+       */
       const rowOffsetX =
         rowCounts.length > 1 &&
         rowIndex === 1 &&
@@ -586,21 +562,21 @@ export class PlayScene extends Phaser.Scene {
             rowStartX +
             columnIndex * spacingX +
             rowOffsetX,
-          y:
-            rowY -
-            8 +
-            naturalOffsetY,
+          y: rowY - 8 + naturalOffsetY,
           scale,
           direction,
         })
 
+        /*
+         * Другий ряд малюємо поверх першого,
+         * щоб передні їжачки виглядали природно.
+         */
         hedgehog.setDepth(
-          20 +
-          rowIndex * 10 +
-          columnIndex,
+          20 + rowIndex * 10 + columnIndex,
         )
 
         this.hedgehogs.push(hedgehog)
+        characterIndex += 1
       }
     })
   }
@@ -616,82 +592,23 @@ export class PlayScene extends Phaser.Scene {
       return
     }
 
-    const {
-      spacingX,
-      spacingY,
-    } = this.getHedgehogLayout(total)
+    const spacing =
+      total >= 8
+        ? 84
+        : total >= 6
+          ? 92
+          : 104
 
-    const rowCounts = this.getRowCounts(total)
-    const centerX = width / 2
-    const centerY = 455
-
-    const targetPositions: Array<{
-      x: number
-      y: number
-    }> = []
-
-    rowCounts.forEach((rowCount, rowIndex) => {
-      const rowWidth =
-        Math.max(0, (rowCount - 1) * spacingX)
-
-      const rowStartX =
-        centerX - rowWidth / 2
-
-      const rowY =
-        rowCounts.length === 1
-          ? centerY
-          : centerY +
-            (rowIndex === 0
-              ? -spacingY / 2
-              : spacingY / 2)
-
-      const rowOffsetX =
-        rowCounts.length > 1 &&
-        rowIndex === 1 &&
-        rowCount < rowCounts[0]
-          ? spacingX * 0.08
-          : 0
-
-      for (
-        let columnIndex = 0;
-        columnIndex < rowCount;
-        columnIndex += 1
-      ) {
-        const naturalOffsetY =
-          columnIndex % 2 === 0
-            ? -3
-            : 4
-
-        targetPositions.push({
-          x:
-            rowStartX +
-            columnIndex * spacingX +
-            rowOffsetX,
-          y: rowY - 8 + naturalOffsetY,
-        })
-      }
-    })
+    const totalWidth = (total - 1) * spacing
+    const startX = width / 2 - totalWidth / 2
 
     let completedCount = 0
 
     this.hedgehogs.forEach((hedgehog, index) => {
-      const target =
-        targetPositions[index]
-
-      const duration =
-        1750 + index * 55
-
-      const delay =
-        index * 65
-
-      /*
-       * walkTo відповідає за горизонтальну ходу
-       * та анімацію лапок.
-       */
       hedgehog.walkTo(
-        target.x,
-        duration,
-        delay,
+        startX + index * spacing,
+        1700 + index * 50,
+        index * 70,
         () => {
           completedCount += 1
 
@@ -700,18 +617,6 @@ export class PlayScene extends Phaser.Scene {
           }
         },
       )
-
-      /*
-       * Окремо пересуваємо кожного їжачка
-       * у потрібний ряд по вертикалі.
-       */
-      this.tweens.add({
-        targets: hedgehog,
-        y: target.y,
-        duration,
-        delay,
-        ease: 'Sine.InOut',
-      })
     })
   }
 
@@ -829,7 +734,7 @@ export class PlayScene extends Phaser.Scene {
         hedgehog.celebrate()
       })
 
-    this.time.delayedCall(4900, () => {
+    this.time.delayedCall(1900, () => {
       this.startNewProblem()
     })
   }

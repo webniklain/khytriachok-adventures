@@ -406,42 +406,35 @@ export class PlayScene extends Phaser.Scene {
     this.destroyHedgehogs()
 
     const { width } = this.scale
-    const groupY = 455
-    const edgePadding = 105
+    const groupY = 385
+    const edgePadding = 92
 
     if (this.problem.operator === '+') {
-      const total =
-        this.problem.left + this.problem.right
-
-      const maxColumns =
-        total > 7
-          ? 3
-          : 5
-
-      const leftWidth = this.getGroupWidth(
+      const leftLayout = this.getHedgehogLayout(
         this.problem.left,
-        maxColumns,
+      )
+      const rightLayout = this.getHedgehogLayout(
+        this.problem.right,
       )
 
-      const rightWidth = this.getGroupWidth(
-        this.problem.right,
-        maxColumns,
-      )
+      const leftGroupWidth =
+        (this.problem.left - 1) * leftLayout.spacing
+
+      const rightGroupWidth =
+        (this.problem.right - 1) * rightLayout.spacing
 
       this.createGroup(
         this.problem.left,
-        edgePadding + leftWidth / 2,
+        edgePadding + leftGroupWidth / 2,
         groupY,
         'right',
-        maxColumns,
       )
 
       this.createGroup(
         this.problem.right,
-        width - edgePadding - rightWidth / 2,
+        width - edgePadding - rightGroupWidth / 2,
         groupY,
         'left',
-        maxColumns,
       )
 
       return
@@ -452,78 +445,33 @@ export class PlayScene extends Phaser.Scene {
       width / 2,
       groupY,
       'right',
-      5,
     )
   }
 
   private getHedgehogLayout(
     count: number,
   ): {
-    spacingX: number
-    spacingY: number
+    spacing: number
     scale: number
   } {
     if (count >= 8) {
       return {
-        spacingX: 150,
-        spacingY: 108,
+        spacing: 88,
         scale: 0.74,
       }
     }
 
     if (count >= 5) {
       return {
-        spacingX: 156,
-        spacingY: 110,
+        spacing: 98,
         scale: 0.82,
       }
     }
 
     return {
-      spacingX: 164,
-      spacingY: 112,
+      spacing: 112,
       scale: 0.94,
     }
-  }
-
-  private getRowCounts(
-    count: number,
-    maxColumns = 5,
-  ): number[] {
-    if (count <= maxColumns) {
-      return [count]
-    }
-
-    const firstRowCount =
-      Math.ceil(count / 2)
-
-    const secondRowCount =
-      count - firstRowCount
-
-    return [
-      firstRowCount,
-      secondRowCount,
-    ]
-  }
-
-  private getGroupWidth(
-    count: number,
-    maxColumns = 5,
-  ): number {
-    const { spacingX } =
-      this.getHedgehogLayout(count)
-
-    const longestRow = Math.max(
-      ...this.getRowCounts(
-        count,
-        maxColumns,
-      ),
-    )
-
-    return Math.max(
-      0,
-      (longestRow - 1) * spacingX,
-    )
   }
 
   private createGroup(
@@ -531,78 +479,25 @@ export class PlayScene extends Phaser.Scene {
     centerX: number,
     y: number,
     direction: 'left' | 'right',
-    maxColumns = 5,
   ): void {
     const {
-      spacingX,
-      spacingY,
+      spacing,
       scale,
     } = this.getHedgehogLayout(count)
 
-    const rowCounts = this.getRowCounts(
-      count,
-      maxColumns,
-    )
+    const totalWidth = (count - 1) * spacing
+    const startX = centerX - totalWidth / 2
 
-    rowCounts.forEach((rowCount, rowIndex) => {
-      const rowWidth =
-        Math.max(
-          0,
-          (rowCount - 1) * spacingX,
-        )
+    for (let index = 0; index < count; index += 1) {
+      const hedgehog = new Khytriachok(this, {
+        x: startX + index * spacing,
+        y: y - 8 + (index % 2) * 10,
+        scale,
+        direction,
+      })
 
-      const rowStartX =
-        centerX - rowWidth / 2
-
-      const rowY =
-        rowCounts.length === 1
-          ? y
-          : y +
-            (
-              rowIndex === 0
-                ? -spacingY / 2
-                : spacingY / 2
-            )
-
-      const rowOffsetX =
-        rowCounts.length > 1 &&
-        rowIndex === 1 &&
-        rowCount < rowCounts[0]
-          ? spacingX * 0.08
-          : 0
-
-      for (
-        let columnIndex = 0;
-        columnIndex < rowCount;
-        columnIndex += 1
-      ) {
-        const naturalOffsetY =
-          columnIndex % 2 === 0
-            ? -3
-            : 4
-
-        const hedgehog = new Khytriachok(this, {
-          x:
-            rowStartX +
-            columnIndex * spacingX +
-            rowOffsetX,
-          y:
-            rowY -
-            8 +
-            naturalOffsetY,
-          scale,
-          direction,
-        })
-
-        hedgehog.setDepth(
-          20 +
-          rowIndex * 10 +
-          columnIndex,
-        )
-
-        this.hedgehogs.push(hedgehog)
-      }
-    })
+      this.hedgehogs.push(hedgehog)
+    }
   }
 
   private gatherHedgehogs(
@@ -616,82 +511,23 @@ export class PlayScene extends Phaser.Scene {
       return
     }
 
-    const {
-      spacingX,
-      spacingY,
-    } = this.getHedgehogLayout(total)
+    const spacing =
+      total >= 8
+        ? 84
+        : total >= 6
+          ? 92
+          : 104
 
-    const rowCounts = this.getRowCounts(total)
-    const centerX = width / 2
-    const centerY = 455
-
-    const targetPositions: Array<{
-      x: number
-      y: number
-    }> = []
-
-    rowCounts.forEach((rowCount, rowIndex) => {
-      const rowWidth =
-        Math.max(0, (rowCount - 1) * spacingX)
-
-      const rowStartX =
-        centerX - rowWidth / 2
-
-      const rowY =
-        rowCounts.length === 1
-          ? centerY
-          : centerY +
-            (rowIndex === 0
-              ? -spacingY / 2
-              : spacingY / 2)
-
-      const rowOffsetX =
-        rowCounts.length > 1 &&
-        rowIndex === 1 &&
-        rowCount < rowCounts[0]
-          ? spacingX * 0.08
-          : 0
-
-      for (
-        let columnIndex = 0;
-        columnIndex < rowCount;
-        columnIndex += 1
-      ) {
-        const naturalOffsetY =
-          columnIndex % 2 === 0
-            ? -3
-            : 4
-
-        targetPositions.push({
-          x:
-            rowStartX +
-            columnIndex * spacingX +
-            rowOffsetX,
-          y: rowY - 8 + naturalOffsetY,
-        })
-      }
-    })
+    const totalWidth = (total - 1) * spacing
+    const startX = width / 2 - totalWidth / 2
 
     let completedCount = 0
 
     this.hedgehogs.forEach((hedgehog, index) => {
-      const target =
-        targetPositions[index]
-
-      const duration =
-        1750 + index * 55
-
-      const delay =
-        index * 65
-
-      /*
-       * walkTo відповідає за горизонтальну ходу
-       * та анімацію лапок.
-       */
       hedgehog.walkTo(
-        target.x,
-        duration,
-        delay,
+        startX + index * spacing,
+        1700 + index * 50,
+        index * 70,
         () => {
           completedCount += 1
 
@@ -700,18 +536,6 @@ export class PlayScene extends Phaser.Scene {
           }
         },
       )
-
-      /*
-       * Окремо пересуваємо кожного їжачка
-       * у потрібний ряд по вертикалі.
-       */
-      this.tweens.add({
-        targets: hedgehog,
-        y: target.y,
-        duration,
-        delay,
-        ease: 'Sine.InOut',
-      })
     })
   }
 
@@ -829,7 +653,7 @@ export class PlayScene extends Phaser.Scene {
         hedgehog.celebrate()
       })
 
-    this.time.delayedCall(4900, () => {
+    this.time.delayedCall(1900, () => {
       this.startNewProblem()
     })
   }
