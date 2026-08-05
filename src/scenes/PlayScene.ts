@@ -6,7 +6,12 @@ import {
 } from '../math/MathProblem'
 
 type AnswerButton = {
-  background: Phaser.GameObjects.Rectangle
+  root: Phaser.GameObjects.Container
+  shadow: Phaser.GameObjects.Arc
+  bark: Phaser.GameObjects.Arc
+  background: Phaser.GameObjects.Arc
+  rings: Phaser.GameObjects.Graphics
+  hitTarget: Phaser.GameObjects.Arc
   text: Phaser.GameObjects.Text
   value: number
 }
@@ -158,53 +163,187 @@ export class PlayScene extends Phaser.Scene {
 
   private createAnswerArea(): void {
     const { width, height } = this.scale
-    const startX = width / 2 - 255
-    const buttonY = height - 75
+
+    const spacing = 184
+    const startX = width / 2 - (spacing * 3) / 2
+    const buttonY = height - 82
 
     for (let index = 0; index < 4; index += 1) {
-      const x = startX + index * 170
+      const x = startX + index * spacing
+      const root = this.add.container(x, buttonY)
+
+      const shadow = this.add.circle(
+        0,
+        11,
+        62,
+        0x58331c,
+        0.42,
+      )
+
+      const bark = this.add.circle(
+        0,
+        1,
+        61,
+        0x985325,
+      )
+
+      bark.setStrokeStyle(5, 0x603216)
 
       const background = this.add
-        .rectangle(
-          x,
-          buttonY,
-          135,
-          82,
-          0xf7bc58,
+        .circle(
+          0,
+          -5,
+          52,
+          0xf4bd67,
         )
-        .setStrokeStyle(4, 0xbd702a)
+        .setStrokeStyle(3, 0xd58a3a)
+
+      const rings = this.add.graphics()
+
+      rings.lineStyle(2, 0xd68d3b, 0.52)
+      rings.strokeCircle(0, -5, 39)
+      rings.strokeCircle(0, -5, 29)
+
+      rings.lineStyle(2, 0xb96c2f, 0.42)
+      rings.beginPath()
+      rings.arc(
+        0,
+        -5,
+        19,
+        Phaser.Math.DegToRad(25),
+        Phaser.Math.DegToRad(300),
+      )
+      rings.strokePath()
+
+      const crack = this.add.graphics()
+
+      crack.lineStyle(3, 0xaa622d, 0.6)
+      crack.beginPath()
+      crack.moveTo(34, -31)
+      crack.lineTo(25, -22)
+      crack.lineTo(30, -12)
+      crack.strokePath()
+
+      const text = this.add
+        .text(0, -5, '', {
+          color: '#4b2d17',
+          fontFamily:
+            '"Trebuchet MS", Arial, sans-serif',
+          fontSize: '48px',
+          fontStyle: 'bold',
+          stroke: '#ffe5ad',
+          strokeThickness: 2,
+        })
+        .setOrigin(0.5)
+
+      /*
+       * Майже невидиме коло поверх усіх деталей.
+       * Alpha не ставимо в 0, щоб Phaser гарантовано
+       * залишав об'єкт у системі вводу.
+       */
+      const hitTarget = this.add
+        .circle(
+          0,
+          0,
+          64,
+          0xffffff,
+          0.001,
+        )
         .setInteractive({
           useHandCursor: true,
         })
 
-      const text = this.add
-        .text(x, buttonY, '', {
-          color: '#4f351b',
-          fontFamily:
-            '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '42px',
-          fontStyle: 'bold',
-        })
-        .setOrigin(0.5)
+      root.add([
+        shadow,
+        bark,
+        background,
+        rings,
+        crack,
+        text,
+        hitTarget,
+      ])
 
       const button: AnswerButton = {
+        root,
+        shadow,
+        bark,
         background,
+        rings,
+        hitTarget,
         text,
         value: 0,
       }
 
-      background.on('pointerover', () => {
-        if (!this.isAnswerLocked) {
-          background.setScale(1.06)
+      hitTarget.on('pointerover', () => {
+        if (this.isAnswerLocked) {
+          return
         }
+
+        this.tweens.killTweensOf(root)
+
+        this.tweens.add({
+          targets: root,
+          scaleX: 1.07,
+          scaleY: 1.07,
+          y: buttonY - 5,
+          duration: 120,
+          ease: 'Back.Out',
+        })
       })
 
-      background.on('pointerout', () => {
-        background.setScale(1)
+      hitTarget.on('pointerout', () => {
+        if (this.isAnswerLocked) {
+          return
+        }
+
+        this.tweens.killTweensOf(root)
+
+        this.tweens.add({
+          targets: root,
+          scaleX: 1,
+          scaleY: 1,
+          y: buttonY,
+          duration: 120,
+          ease: 'Sine.Out',
+        })
       })
 
-      background.on('pointerdown', () => {
+      hitTarget.on('pointerdown', () => {
+        if (this.isAnswerLocked) {
+          return
+        }
+
         this.checkAnswer(button)
+        this.tweens.killTweensOf(root)
+
+        this.tweens.add({
+          targets: root,
+          scaleX: 0.91,
+          scaleY: 0.82,
+          y: buttonY + 10,
+          duration: 85,
+          ease: 'Sine.In',
+          onComplete: () => {
+            this.tweens.add({
+              targets: root,
+              scaleX: 1.08,
+              scaleY: 1.08,
+              y: buttonY - 4,
+              duration: 130,
+              ease: 'Back.Out',
+              onComplete: () => {
+                this.tweens.add({
+                  targets: root,
+                  scaleX: 1,
+                  scaleY: 1,
+                  y: buttonY,
+                  duration: 100,
+                  ease: 'Sine.Out',
+                })
+              },
+            })
+          },
+        })
       })
 
       this.answerButtons.push(button)
@@ -215,7 +354,7 @@ export class PlayScene extends Phaser.Scene {
     this.isAnswerLocked = false
 
     this.answerButtons.forEach((button) => {
-      button.background.setInteractive({
+      button.hitTarget.setInteractive({
         useHandCursor: true,
       })
     })
@@ -239,15 +378,27 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private renderAnswerButtons(): void {
+    const buttonY = this.scale.height - 82
+
     this.answerButtons.forEach((button, index) => {
       const value = this.problem.options[index]
 
       button.value = value
       button.text.setText(String(value))
-      button.background
-        .setFillStyle(0xf7bc58)
-        .setStrokeStyle(4, 0xbd702a)
+
+      this.tweens.killTweensOf(button.root)
+
+      button.root
         .setScale(1)
+        .setY(buttonY)
+
+      button.background
+        .setFillStyle(0xf4bd67)
+        .setStrokeStyle(3, 0xd58a3a)
+
+      button.bark
+        .setFillStyle(0x985325)
+        .setStrokeStyle(5, 0x603216)
     })
   }
 
@@ -411,7 +562,7 @@ export class PlayScene extends Phaser.Scene {
       .setStrokeStyle(4, 0x4f9d54)
 
     this.answerButtons.forEach((answerButton) => {
-      answerButton.background.disableInteractive()
+      answerButton.hitTarget.disableInteractive()
     })
 
     if (this.problem.operator === '+') {
