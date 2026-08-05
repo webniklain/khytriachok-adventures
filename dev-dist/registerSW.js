@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/khytriachok-adventures/dev-sw.js?dev-sw', { scope: '/khytriachok-adventures/', type: 'classic' })

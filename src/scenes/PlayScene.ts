@@ -407,18 +407,32 @@ export class PlayScene extends Phaser.Scene {
 
     const { width } = this.scale
     const groupY = 385
+    const edgePadding = 92
 
     if (this.problem.operator === '+') {
+      const leftLayout = this.getHedgehogLayout(
+        this.problem.left,
+      )
+      const rightLayout = this.getHedgehogLayout(
+        this.problem.right,
+      )
+
+      const leftGroupWidth =
+        (this.problem.left - 1) * leftLayout.spacing
+
+      const rightGroupWidth =
+        (this.problem.right - 1) * rightLayout.spacing
+
       this.createGroup(
         this.problem.left,
-        width * 0.25,
+        edgePadding + leftGroupWidth / 2,
         groupY,
         'right',
       )
 
       this.createGroup(
         this.problem.right,
-        width * 0.75,
+        width - edgePadding - rightGroupWidth / 2,
         groupY,
         'left',
       )
@@ -434,21 +448,51 @@ export class PlayScene extends Phaser.Scene {
     )
   }
 
+  private getHedgehogLayout(
+    count: number,
+  ): {
+    spacing: number
+    scale: number
+  } {
+    if (count >= 8) {
+      return {
+        spacing: 88,
+        scale: 0.62,
+      }
+    }
+
+    if (count >= 5) {
+      return {
+        spacing: 98,
+        scale: 0.68,
+      }
+    }
+
+    return {
+      spacing: 112,
+      scale: 0.78,
+    }
+  }
+
   private createGroup(
     count: number,
     centerX: number,
     y: number,
     direction: 'left' | 'right',
   ): void {
-    const spacing = count >= 5 ? 74 : 86
+    const {
+      spacing,
+      scale,
+    } = this.getHedgehogLayout(count)
+
     const totalWidth = (count - 1) * spacing
     const startX = centerX - totalWidth / 2
 
     for (let index = 0; index < count; index += 1) {
       const hedgehog = new Khytriachok(this, {
         x: startX + index * spacing,
-        y: y + (index % 2) * 8,
-        scale: count >= 5 ? 0.55 : 0.66,
+        y: y + (index % 2) * 10,
+        scale,
         direction,
       })
 
@@ -469,10 +513,10 @@ export class PlayScene extends Phaser.Scene {
 
     const spacing =
       total >= 8
-        ? 67
+        ? 84
         : total >= 6
-          ? 74
-          : 86
+          ? 92
+          : 104
 
     const totalWidth = (total - 1) * spacing
     const startX = width / 2 - totalWidth / 2
