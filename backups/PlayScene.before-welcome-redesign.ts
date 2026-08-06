@@ -1,9 +1,6 @@
 import Phaser from 'phaser'
 import { Khytriachok } from '../characters/Khytriachok'
-import {
-  AudioManager,
-  audioManager,
-} from '../audio/AudioManager'
+import { audioManager } from '../audio/AudioManager'
 import {
   generateMathProblem,
   type MathProblem,
@@ -38,18 +35,7 @@ export class PlayScene extends Phaser.Scene {
     })
   }
 
-  preload(): void {
-    AudioManager.preload(this)
-
-    this.load.image(
-      'welcome-khytriachok',
-      `${import.meta.env.BASE_URL}icons/icon-source.png`,
-    )
-  }
-
   create(): void {
-    audioManager.initialize(this)
-
     this.createBackground()
     this.createHeader()
     this.createProblemPanel()
@@ -59,7 +45,12 @@ export class PlayScene extends Phaser.Scene {
 
   private createStartScreen(): void {
     const { width, height } = this.scale
-this.answerButtons.forEach((button) => {
+
+    /*
+     * ???? ??? ?? ????????, ????????
+     * ?? ??????? ????????? ?? ??????????.
+     */
+    this.answerButtons.forEach((button) => {
       button.hitTarget.disableInteractive()
       button.root.setVisible(false)
     })
@@ -73,301 +64,169 @@ this.answerButtons.forEach((button) => {
         0,
         width,
         height,
-        0x163a30,
-        0.48,
+        0x173d30,
+        0.42,
       )
       .setOrigin(0)
       .setDepth(900)
       .setInteractive()
 
-    const panelWidth = Math.min(
-      width - 150,
-      1120,
-    )
-
-    const panelHeight = 430
-    const panelX = width / 2
-    const panelY = height / 2 + 5
-
-    const panelShadow = this.add
+    const card = this.add
       .rectangle(
-        panelX,
-        panelY + 16,
-        panelWidth,
-        panelHeight,
-        0x254829,
-        0.32,
-      )
-      .setDepth(901)
-
-    const panel = this.add
-      .rectangle(
-        panelX,
-        panelY,
-        panelWidth,
-        panelHeight,
-        0xfff7dc,
-        1,
-      )
-      .setStrokeStyle(
-        8,
-        0x78a94c,
-      )
-      .setDepth(902)
-
-    /*
-     * ???????????? ???????????? ??????????.
-     */
-    const dividerX =
-      panelX - 40
-
-    const divider = this.add
-      .rectangle(
-        dividerX,
-        panelY,
-        4,
-        panelHeight - 70,
-        0xa8c880,
-        0.75,
-      )
-      .setDepth(903)
-
-    /*
-     * ???? ???????: ????????? ???? ????????.
-     */
-    const imageCenterX =
-      panelX - panelWidth * 0.27
-
-    const imageFrameShadow = this.add
-      .rectangle(
-        imageCenterX,
-        panelY + 10,
-        318,
-        318,
-        0x35552f,
-        0.28,
-      )
-      .setDepth(903)
-
-    const imageFrame = this.add
-      .rectangle(
-        imageCenterX,
-        panelY,
-        318,
-        318,
-        0xffffff,
-        1,
+        width / 2,
+        height / 2,
+        610,
+        330,
+        0xfff6d7,
+        0.97,
       )
       .setStrokeStyle(
         7,
-        0x7caf54,
+        0x78a94c,
       )
-      .setDepth(904)
-
-    const hedgehogImage = this.add
-      .image(
-        imageCenterX,
-        panelY,
-        'welcome-khytriachok',
-      )
-      .setDisplaySize(
-        294,
-        294,
-      )
-      .setDepth(905)
-
-    /*
-     * ????? ???????: ?????????? ?? ??????.
-     */
-    const contentX =
-      panelX + panelWidth * 0.23
+      .setDepth(901)
 
     const title = this.add
       .text(
-        contentX,
-        panelY - 125,
+        width / 2,
+        height / 2 - 105,
         'Привіт!',
         {
           color: '#294b32',
           fontFamily:
             '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '56px',
+          fontSize: '54px',
           fontStyle: 'bold',
           stroke: '#ffffff',
           strokeThickness: 6,
         },
       )
       .setOrigin(0.5)
-      .setDepth(904)
-
-    const subtitleText = [
-      'Я — Їжачок Хитрячок!',
-      'Давай рахувати',
-      'та веселитися разом!',
-    ].join('\n')
+      .setDepth(902)
 
     const subtitle = this.add
       .text(
-        contentX,
-        panelY - 32,
-        subtitleText,
+        width / 2,
+        height / 2 - 38,
+        '\u042f \u0407\u0436\u0430\u0447\u043e\u043a \u0425\u0438\u0442\u0440\u044f\u0447\u043e\u043a!\\n\u0414\u0430\u0432\u0430\u0439 \u0440\u0430\u0445\u0443\u0432\u0430\u0442\u0438 \u0440\u0430\u0437\u043e\u043c!',
         {
           color: '#45623d',
           fontFamily:
             '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '29px',
+          fontSize: '28px',
           fontStyle: 'bold',
           align: 'center',
-          lineSpacing: 9,
+          lineSpacing: 8,
         },
       )
       .setOrigin(0.5)
-      .setDepth(904)
-
-    const buttonY =
-      panelY + 125
+      .setDepth(902)
 
     const buttonShadow = this.add
       .ellipse(
-        contentX,
-        buttonY + 12,
-        270,
-        88,
-        0x4b2d18,
-        0.4,
+        width / 2,
+        height / 2 + 117,
+        250,
+        74,
+        0x4c2c17,
+        0.38,
       )
-      .setDepth(903)
+      .setDepth(902)
 
     const playButton = this.add
       .ellipse(
-        contentX,
-        buttonY,
-        270,
-        88,
-        0x80bd50,
-        1,
+        width / 2,
+        height / 2 + 104,
+        250,
+        82,
+        0x81bd50,
       )
       .setStrokeStyle(
         6,
-        0x3d7c3b,
+        0x3f7f3d,
       )
-      .setDepth(904)
+      .setDepth(903)
+      .setInteractive({
+        useHandCursor: true,
+      })
 
     const playText = this.add
       .text(
-        contentX,
-        buttonY - 3,
+        width / 2,
+        height / 2 + 100,
         'Грати',
         {
           color: '#ffffff',
           fontFamily:
             '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '43px',
+          fontSize: '42px',
           fontStyle: 'bold',
-          stroke: '#356b35',
+          stroke: '#356c36',
           strokeThickness: 4,
         },
       )
       .setOrigin(0.5)
-      .setDepth(905)
-
-    /*
-     * ?????? ??????? ???? ?????????? ??????
-     * ?????? ? ??????. ??? ?????????? ?????????
-     * ?????? ?? ??????????.
-     */
-    const playHitTarget = this.add
-      .ellipse(
-        contentX,
-        buttonY,
-        286,
-        102,
-        0xffffff,
-        0.001,
-      )
-      .setDepth(906)
-      .setInteractive({
-        useHandCursor: true,
-      })
+      .setDepth(904)
 
     const startObjects = [
-      panelShadow,
-      panel,
-      divider,
-      imageFrameShadow,
-      imageFrame,
-      hedgehogImage,
+      overlay,
+      card,
       title,
       subtitle,
       buttonShadow,
       playButton,
       playText,
-      playHitTarget,
     ]
 
-    let hasStarted = false
-
     const startGame = (): void => {
-      if (hasStarted) {
-        return
-      }
-
-      hasStarted = true
-      playHitTarget.disableInteractive()
-
-      audioManager.unlock()
-      audioManager.playBackgroundMusic()
-      audioManager.playUi('click')
+      playButton.disableInteractive()
 
       /*
-       * ?????? ??????? ?????????? ????
-       * ????? ?????????? ??????????.
+       * ???? ??? ?????? ????? ??????????
+       * ???????? ?????? ????????? ?? ?????????.
        */
-      audioManager.playGreeting(() => {
-        this.tweens.add({
-          targets: startObjects,
-          alpha: 0,
-          scaleX: 0.96,
-          scaleY: 0.96,
-          duration: 320,
-          ease: 'Sine.In',
-        })
+      audioManager.playUi('click')
+      audioManager.playGreeting()
 
-        this.tweens.add({
-          targets: overlay,
-          alpha: 0,
-          duration: 380,
-          ease: 'Sine.Out',
-          onComplete: () => {
-            startObjects.forEach(
-              (item) => {
-                item.destroy()
-              },
-            )
+      this.tweens.add({
+        targets: [
+          card,
+          title,
+          subtitle,
+          buttonShadow,
+          playButton,
+          playText,
+        ],
+        alpha: 0,
+        scaleX: 0.92,
+        scaleY: 0.92,
+        duration: 260,
+        ease: 'Back.In',
+      })
 
-            overlay.destroy()
+      this.tweens.add({
+        targets: overlay,
+        alpha: 0,
+        duration: 320,
+        ease: 'Sine.Out',
+        onComplete: () => {
+          startObjects.forEach((item) => {
+            item.destroy()
+          })
 
-            this.answerButtons.forEach(
-              (button) => {
-                button.root.setVisible(true)
-              },
-            )
+          this.answerButtons.forEach((button) => {
+            button.root.setVisible(true)
+          })
 
-            this.startNewProblem()
-          },
-        })
+          this.startNewProblem()
+        },
       })
     }
 
-    playHitTarget.on('pointerover', () => {
-      if (hasStarted) {
-        return
-      }
-
+    playButton.on('pointerover', () => {
       this.tweens.killTweensOf([
         playButton,
         playText,
-        buttonShadow,
       ])
 
       this.tweens.add({
@@ -375,37 +234,23 @@ this.answerButtons.forEach((button) => {
           playButton,
           playText,
         ],
-        scaleX: 1.06,
-        scaleY: 1.06,
-        duration: 130,
-        ease: 'Back.Out',
-      })
-
-      this.tweens.add({
-        targets: buttonShadow,
-        scaleX: 1.04,
-        scaleY: 1.04,
+        scaleX: 1.07,
+        scaleY: 1.07,
         duration: 130,
         ease: 'Back.Out',
       })
     })
 
-    playHitTarget.on('pointerout', () => {
-      if (hasStarted) {
-        return
-      }
-
+    playButton.on('pointerout', () => {
       this.tweens.killTweensOf([
         playButton,
         playText,
-        buttonShadow,
       ])
 
       this.tweens.add({
         targets: [
           playButton,
           playText,
-          buttonShadow,
         ],
         scaleX: 1,
         scaleY: 1,
@@ -414,12 +259,23 @@ this.answerButtons.forEach((button) => {
       })
     })
 
-    playHitTarget.on('pointerdown', () => {
-      /*
-       * ?????????? ??? ??????.
-       * pointerout ?????? ?? ???? ????????? ??????.
-       */
-      startGame()
+    playButton.on('pointerdown', () => {
+      this.tweens.killTweensOf([
+        playButton,
+        playText,
+      ])
+
+      this.tweens.add({
+        targets: [
+          playButton,
+          playText,
+        ],
+        scaleX: 0.9,
+        scaleY: 0.82,
+        duration: 85,
+        ease: 'Sine.In',
+        onComplete: startGame,
+      })
     })
   }
 

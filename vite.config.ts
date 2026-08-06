@@ -120,11 +120,14 @@ export default defineConfig({
 
       workbox: {
         cleanupOutdatedCaches: true,
+
+        maximumFileSizeToCacheInBytes:
+          6 * 1024 * 1024,
         clientsClaim: true,
         skipWaiting: true,
 
         globPatterns: [
-          '**/*.{js,css,html,png,svg,ico,webp,woff,woff2}',
+          '**/*.{js,css,html,png,svg,ico,webp,woff,woff2,mp3,ogg,wav}',
         ],
 
         navigateFallback: 'index.html',
