@@ -111,7 +111,7 @@ this.answerButtons.forEach((button) => {
         1,
       )
       .setStrokeStyle(
-        12,
+        8,
         0x78a94c,
       )
       .setDepth(902)
@@ -1208,7 +1208,7 @@ this.answerButtons.forEach((button) => {
       .circle(
         centerX,
         centerY,
-        236,
+        118,
         0xffef9a,
         0.58,
       )
@@ -1220,8 +1220,8 @@ this.answerButtons.forEach((button) => {
       .rectangle(
         centerX,
         centerY,
-        620,
-        460,
+        310,
+        230,
         0xfff8d9,
         0.98,
       )
@@ -1236,13 +1236,13 @@ this.answerButtons.forEach((button) => {
     const label = this.add
       .text(
         centerX,
-        centerY - 148,
-        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e!',
+        centerY - 74,
+        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u0430 \u0432\u0456\u0434\u043f\u043e\u0432\u0456\u0434\u044c',
         {
           color: '#45623d',
           fontFamily:
             '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '56px',
+          fontSize: '28px',
           fontStyle: 'bold',
           align: 'center',
         },
@@ -1254,16 +1254,16 @@ this.answerButtons.forEach((button) => {
     const answer = this.add
       .text(
         centerX,
-        centerY + 44,
+        centerY + 22,
         String(this.problem.answer),
         {
           color: '#28743a',
           fontFamily:
             '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '300px',
+          fontSize: '150px',
           fontStyle: 'bold',
           stroke: '#ffffff',
-          strokeThickness: 16,
+          strokeThickness: 10,
         },
       )
       .setOrigin(0.5)
@@ -1272,10 +1272,10 @@ this.answerButtons.forEach((button) => {
       .setScale(0.18)
 
     const sparkles = [
-      [-292, -202, '\u2728'],
-      [296, -188, '\u2B50'],
-      [-294, 198, '\u2B50'],
-      [292, 204, '\u2728'],
+      [-142, -94, '\u2728'],
+      [146, -82, '\u2B50'],
+      [-146, 94, '\u2B50'],
+      [144, 102, '\u2728'],
     ].map(
       ([offsetX, offsetY, symbol]) =>
         this.add
@@ -1286,7 +1286,7 @@ this.answerButtons.forEach((button) => {
             {
               fontFamily:
                 'Apple Color Emoji, Segoe UI Emoji, Arial',
-              fontSize: '60px',
+              fontSize: '36px',
             },
           )
           .setOrigin(0.5)

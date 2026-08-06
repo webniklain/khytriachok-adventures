@@ -111,7 +111,7 @@ this.answerButtons.forEach((button) => {
         1,
       )
       .setStrokeStyle(
-        12,
+        8,
         0x78a94c,
       )
       .setDepth(902)
@@ -1164,239 +1164,28 @@ this.answerButtons.forEach((button) => {
       answerButton.hitTarget.disableInteractive()
     })
 
-    this.showCorrectAnswerReveal(() => {
-      if (this.problem.operator === '+') {
-        this.feedbackText
-          .setText(
-            '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0407\u0436\u0430\u0447\u043a\u0438 \u0437\u0431\u0438\u0440\u0430\u044e\u0442\u044c\u0441\u044f \u0440\u0430\u0437\u043e\u043c',
-          )
-          .setColor('#28743a')
-
-        this.gatherHedgehogs(() => {
-          this.finishCorrectAnswer()
-        })
-
-        return
-      }
-
+    if (this.problem.operator === '+') {
       this.feedbackText
         .setText(
-          '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0427\u0430\u0441\u0442\u0438\u043d\u0430 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0439\u0434\u0435',
+          '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0407\u0436\u0430\u0447\u043a\u0438 \u0437\u0431\u0438\u0440\u0430\u044e\u0442\u044c\u0441\u044f \u0440\u0430\u0437\u043e\u043c',
         )
         .setColor('#28743a')
 
-      this.subtractHedgehogs(() => {
+      this.gatherHedgehogs(() => {
         this.finishCorrectAnswer()
       })
-    })
-  }
 
-  private showCorrectAnswerReveal(
-    onComplete: () => void,
-  ): void {
-    const { width, height } = this.scale
+      return
+    }
 
-    /*
-     * ????????? ????????? ????? ????
-     * ????????????? ??????, ??? ????
-     * ?? ??????????? ????????.
-     */
-    const centerX = width / 2
-    const centerY = height / 2 - 18
-
-    const glow = this.add
-      .circle(
-        centerX,
-        centerY,
-        236,
-        0xffef9a,
-        0.58,
+    this.feedbackText
+      .setText(
+        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0427\u0430\u0441\u0442\u0438\u043d\u0430 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0439\u0434\u0435',
       )
-      .setDepth(820)
-      .setAlpha(0)
-      .setScale(0.25)
+      .setColor('#28743a')
 
-    const answerCard = this.add
-      .rectangle(
-        centerX,
-        centerY,
-        620,
-        460,
-        0xfff8d9,
-        0.98,
-      )
-      .setStrokeStyle(
-        8,
-        0x78a94c,
-      )
-      .setDepth(821)
-      .setAlpha(0)
-      .setScale(0.3)
-
-    const label = this.add
-      .text(
-        centerX,
-        centerY - 148,
-        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e!',
-        {
-          color: '#45623d',
-          fontFamily:
-            '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '56px',
-          fontStyle: 'bold',
-          align: 'center',
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(822)
-      .setAlpha(0)
-
-    const answer = this.add
-      .text(
-        centerX,
-        centerY + 44,
-        String(this.problem.answer),
-        {
-          color: '#28743a',
-          fontFamily:
-            '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '300px',
-          fontStyle: 'bold',
-          stroke: '#ffffff',
-          strokeThickness: 16,
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(823)
-      .setAlpha(0)
-      .setScale(0.18)
-
-    const sparkles = [
-      [-292, -202, '\u2728'],
-      [296, -188, '\u2B50'],
-      [-294, 198, '\u2B50'],
-      [292, 204, '\u2728'],
-    ].map(
-      ([offsetX, offsetY, symbol]) =>
-        this.add
-          .text(
-            centerX + Number(offsetX),
-            centerY + Number(offsetY),
-            String(symbol),
-            {
-              fontFamily:
-                'Apple Color Emoji, Segoe UI Emoji, Arial',
-              fontSize: '60px',
-            },
-          )
-          .setOrigin(0.5)
-          .setDepth(824)
-          .setAlpha(0)
-          .setScale(0.2),
-    )
-
-    /*
-     * ????? ??????.
-     */
-    this.tweens.add({
-      targets: glow,
-      alpha: 0.75,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 260,
-      ease: 'Back.Out',
-    })
-
-    this.tweens.add({
-      targets: answerCard,
-      alpha: 1,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 300,
-      ease: 'Back.Out',
-    })
-
-    this.tweens.add({
-      targets: label,
-      alpha: 1,
-      duration: 230,
-      delay: 100,
-      ease: 'Sine.Out',
-    })
-
-    this.tweens.add({
-      targets: answer,
-      alpha: 1,
-      scaleX: 1.12,
-      scaleY: 1.12,
-      duration: 340,
-      delay: 80,
-      ease: 'Back.Out',
-      onComplete: () => {
-        /*
-         * ????????? ????? ?????????
-         * ?????????? ????? ???? ?? ?????.
-         */
-        this.tweens.add({
-          targets: answer,
-          scaleX: 1,
-          scaleY: 1,
-          duration: 150,
-          ease: 'Sine.InOut',
-        })
-      },
-    })
-
-    sparkles.forEach(
-      (sparkle, index) => {
-        this.tweens.add({
-          targets: sparkle,
-          alpha: 1,
-          scaleX: 1,
-          scaleY: 1,
-          angle:
-            index % 2 === 0
-              ? 18
-              : -18,
-          duration: 260,
-          delay: 140 + index * 55,
-          ease: 'Back.Out',
-        })
-      },
-    )
-
-    /*
-     * ???????? ????????? ?? ??????,
-     * ? ????? ?????? ??????????.
-     */
-    this.time.delayedCall(1250, () => {
-      const objects = [
-        glow,
-        answerCard,
-        label,
-        answer,
-        ...sparkles,
-      ]
-
-      this.tweens.add({
-        targets: objects,
-        alpha: 0,
-        scaleX: 0.86,
-        scaleY: 0.86,
-        duration: 260,
-        ease: 'Sine.In',
-        onComplete: () => {
-          objects.forEach((item) => {
-            item.destroy()
-          })
-
-          /*
-           * ?????? ????? ????????? ???
-           * ???????.
-           */
-          onComplete()
-        },
-      })
+    this.subtractHedgehogs(() => {
+      this.finishCorrectAnswer()
     })
   }
 

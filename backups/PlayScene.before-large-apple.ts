@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import { requestLandscapeOrientation } from '../orientationLock'
 import { Khytriachok } from '../characters/Khytriachok'
 import {
   AudioManager,
@@ -111,7 +110,7 @@ this.answerButtons.forEach((button) => {
         1,
       )
       .setStrokeStyle(
-        12,
+        8,
         0x78a94c,
       )
       .setDepth(902)
@@ -316,8 +315,6 @@ this.answerButtons.forEach((button) => {
       hasStarted = true
       playHitTarget.disableInteractive()
 
-      void requestLandscapeOrientation()
-
       audioManager.unlock()
       audioManager.playBackgroundMusic()
       audioManager.playUi('click')
@@ -516,9 +513,9 @@ this.answerButtons.forEach((button) => {
 
     const panel = this.add.rectangle(
       width / 2,
-      158,
-      Math.min(width - 220, 760),
-      156,
+      145,
+      410,
+      92,
       0xffffff,
       0.9,
     )
@@ -526,20 +523,20 @@ this.answerButtons.forEach((button) => {
     panel.setStrokeStyle(4, 0x9dc77d)
 
     this.problemText = this.add
-      .text(width / 2, 150, '', {
+      .text(width / 2, 145, '', {
         color: '#294b32',
         fontFamily:
           '"Trebuchet MS", Arial, sans-serif',
-        fontSize: '92px',
+        fontSize: '54px',
         fontStyle: 'bold',
       })
       .setOrigin(0.5)
 
     this.feedbackText = this.add
-      .text(width / 2, 248, '', {
+      .text(width / 2, 215, '', {
         color: '#31533a',
         fontFamily: 'Arial, sans-serif',
-        fontSize: '30px',
+        fontSize: '24px',
         fontStyle: 'bold',
       })
       .setOrigin(0.5)
@@ -1164,239 +1161,28 @@ this.answerButtons.forEach((button) => {
       answerButton.hitTarget.disableInteractive()
     })
 
-    this.showCorrectAnswerReveal(() => {
-      if (this.problem.operator === '+') {
-        this.feedbackText
-          .setText(
-            '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0407\u0436\u0430\u0447\u043a\u0438 \u0437\u0431\u0438\u0440\u0430\u044e\u0442\u044c\u0441\u044f \u0440\u0430\u0437\u043e\u043c',
-          )
-          .setColor('#28743a')
-
-        this.gatherHedgehogs(() => {
-          this.finishCorrectAnswer()
-        })
-
-        return
-      }
-
+    if (this.problem.operator === '+') {
       this.feedbackText
         .setText(
-          '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0427\u0430\u0441\u0442\u0438\u043d\u0430 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0439\u0434\u0435',
+          '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0407\u0436\u0430\u0447\u043a\u0438 \u0437\u0431\u0438\u0440\u0430\u044e\u0442\u044c\u0441\u044f \u0440\u0430\u0437\u043e\u043c',
         )
         .setColor('#28743a')
 
-      this.subtractHedgehogs(() => {
+      this.gatherHedgehogs(() => {
         this.finishCorrectAnswer()
       })
-    })
-  }
 
-  private showCorrectAnswerReveal(
-    onComplete: () => void,
-  ): void {
-    const { width, height } = this.scale
+      return
+    }
 
-    /*
-     * ????????? ????????? ????? ????
-     * ????????????? ??????, ??? ????
-     * ?? ??????????? ????????.
-     */
-    const centerX = width / 2
-    const centerY = height / 2 - 18
-
-    const glow = this.add
-      .circle(
-        centerX,
-        centerY,
-        236,
-        0xffef9a,
-        0.58,
+    this.feedbackText
+      .setText(
+        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0427\u0430\u0441\u0442\u0438\u043d\u0430 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0439\u0434\u0435',
       )
-      .setDepth(820)
-      .setAlpha(0)
-      .setScale(0.25)
+      .setColor('#28743a')
 
-    const answerCard = this.add
-      .rectangle(
-        centerX,
-        centerY,
-        620,
-        460,
-        0xfff8d9,
-        0.98,
-      )
-      .setStrokeStyle(
-        8,
-        0x78a94c,
-      )
-      .setDepth(821)
-      .setAlpha(0)
-      .setScale(0.3)
-
-    const label = this.add
-      .text(
-        centerX,
-        centerY - 148,
-        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e!',
-        {
-          color: '#45623d',
-          fontFamily:
-            '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '56px',
-          fontStyle: 'bold',
-          align: 'center',
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(822)
-      .setAlpha(0)
-
-    const answer = this.add
-      .text(
-        centerX,
-        centerY + 44,
-        String(this.problem.answer),
-        {
-          color: '#28743a',
-          fontFamily:
-            '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '300px',
-          fontStyle: 'bold',
-          stroke: '#ffffff',
-          strokeThickness: 16,
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(823)
-      .setAlpha(0)
-      .setScale(0.18)
-
-    const sparkles = [
-      [-292, -202, '\u2728'],
-      [296, -188, '\u2B50'],
-      [-294, 198, '\u2B50'],
-      [292, 204, '\u2728'],
-    ].map(
-      ([offsetX, offsetY, symbol]) =>
-        this.add
-          .text(
-            centerX + Number(offsetX),
-            centerY + Number(offsetY),
-            String(symbol),
-            {
-              fontFamily:
-                'Apple Color Emoji, Segoe UI Emoji, Arial',
-              fontSize: '60px',
-            },
-          )
-          .setOrigin(0.5)
-          .setDepth(824)
-          .setAlpha(0)
-          .setScale(0.2),
-    )
-
-    /*
-     * ????? ??????.
-     */
-    this.tweens.add({
-      targets: glow,
-      alpha: 0.75,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 260,
-      ease: 'Back.Out',
-    })
-
-    this.tweens.add({
-      targets: answerCard,
-      alpha: 1,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 300,
-      ease: 'Back.Out',
-    })
-
-    this.tweens.add({
-      targets: label,
-      alpha: 1,
-      duration: 230,
-      delay: 100,
-      ease: 'Sine.Out',
-    })
-
-    this.tweens.add({
-      targets: answer,
-      alpha: 1,
-      scaleX: 1.12,
-      scaleY: 1.12,
-      duration: 340,
-      delay: 80,
-      ease: 'Back.Out',
-      onComplete: () => {
-        /*
-         * ????????? ????? ?????????
-         * ?????????? ????? ???? ?? ?????.
-         */
-        this.tweens.add({
-          targets: answer,
-          scaleX: 1,
-          scaleY: 1,
-          duration: 150,
-          ease: 'Sine.InOut',
-        })
-      },
-    })
-
-    sparkles.forEach(
-      (sparkle, index) => {
-        this.tweens.add({
-          targets: sparkle,
-          alpha: 1,
-          scaleX: 1,
-          scaleY: 1,
-          angle:
-            index % 2 === 0
-              ? 18
-              : -18,
-          duration: 260,
-          delay: 140 + index * 55,
-          ease: 'Back.Out',
-        })
-      },
-    )
-
-    /*
-     * ???????? ????????? ?? ??????,
-     * ? ????? ?????? ??????????.
-     */
-    this.time.delayedCall(1250, () => {
-      const objects = [
-        glow,
-        answerCard,
-        label,
-        answer,
-        ...sparkles,
-      ]
-
-      this.tweens.add({
-        targets: objects,
-        alpha: 0,
-        scaleX: 0.86,
-        scaleY: 0.86,
-        duration: 260,
-        ease: 'Sine.In',
-        onComplete: () => {
-          objects.forEach((item) => {
-            item.destroy()
-          })
-
-          /*
-           * ?????? ????? ????????? ???
-           * ???????.
-           */
-          onComplete()
-        },
-      })
+    this.subtractHedgehogs(() => {
+      this.finishCorrectAnswer()
     })
   }
 
@@ -1452,7 +1238,7 @@ this.answerButtons.forEach((button) => {
         {
           fontFamily:
             'Apple Color Emoji, Segoe UI Emoji, Arial',
-          fontSize: '172px',
+          fontSize: '86px',
         },
       )
       .setOrigin(0.5)
@@ -1468,7 +1254,7 @@ this.answerButtons.forEach((button) => {
       .circle(
         startX,
         startY,
-        104,
+        58,
         0xffe987,
         0.32,
       )
@@ -1480,10 +1266,10 @@ this.answerButtons.forEach((button) => {
      * ???????? ??????? ??????? ????????.
      */
     const sparkleOffsets = [
-      [-132, -82],
-      [136, -70],
-      [-118, 102],
-      [126, 94],
+      [-72, -40],
+      [74, -34],
+      [-62, 54],
+      [68, 48],
     ]
 
     const sparkles = sparkleOffsets.map(
@@ -1500,8 +1286,8 @@ this.answerButtons.forEach((button) => {
                 'Apple Color Emoji, Segoe UI Emoji, Arial',
               fontSize:
                 index % 2 === 0
-                  ? '48px'
-                  : '40px',
+                  ? '30px'
+                  : '25px',
             },
           )
           .setOrigin(0.5)

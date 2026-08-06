@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import { requestLandscapeOrientation } from '../orientationLock'
 import { Khytriachok } from '../characters/Khytriachok'
 import {
   AudioManager,
@@ -111,7 +110,7 @@ this.answerButtons.forEach((button) => {
         1,
       )
       .setStrokeStyle(
-        12,
+        8,
         0x78a94c,
       )
       .setDepth(902)
@@ -316,8 +315,6 @@ this.answerButtons.forEach((button) => {
       hasStarted = true
       playHitTarget.disableInteractive()
 
-      void requestLandscapeOrientation()
-
       audioManager.unlock()
       audioManager.playBackgroundMusic()
       audioManager.playUi('click')
@@ -516,9 +513,9 @@ this.answerButtons.forEach((button) => {
 
     const panel = this.add.rectangle(
       width / 2,
-      158,
-      Math.min(width - 220, 760),
-      156,
+      145,
+      410,
+      92,
       0xffffff,
       0.9,
     )
@@ -526,20 +523,20 @@ this.answerButtons.forEach((button) => {
     panel.setStrokeStyle(4, 0x9dc77d)
 
     this.problemText = this.add
-      .text(width / 2, 150, '', {
+      .text(width / 2, 145, '', {
         color: '#294b32',
         fontFamily:
           '"Trebuchet MS", Arial, sans-serif',
-        fontSize: '92px',
+        fontSize: '54px',
         fontStyle: 'bold',
       })
       .setOrigin(0.5)
 
     this.feedbackText = this.add
-      .text(width / 2, 248, '', {
+      .text(width / 2, 215, '', {
         color: '#31533a',
         fontFamily: 'Arial, sans-serif',
-        fontSize: '30px',
+        fontSize: '24px',
         fontStyle: 'bold',
       })
       .setOrigin(0.5)
@@ -1156,6 +1153,12 @@ this.answerButtons.forEach((button) => {
     button: AnswerButton,
   ): void {
     this.isAnswerLocked = true
+    this.score += 1
+
+    this.appleText.setText(
+      `\u{1F34E} ${this.score}`,
+    )
+
     button.background
       .setFillStyle(0x9ddc7a)
       .setStrokeStyle(4, 0x4f9d54)
@@ -1164,239 +1167,28 @@ this.answerButtons.forEach((button) => {
       answerButton.hitTarget.disableInteractive()
     })
 
-    this.showCorrectAnswerReveal(() => {
-      if (this.problem.operator === '+') {
-        this.feedbackText
-          .setText(
-            '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0407\u0436\u0430\u0447\u043a\u0438 \u0437\u0431\u0438\u0440\u0430\u044e\u0442\u044c\u0441\u044f \u0440\u0430\u0437\u043e\u043c',
-          )
-          .setColor('#28743a')
-
-        this.gatherHedgehogs(() => {
-          this.finishCorrectAnswer()
-        })
-
-        return
-      }
-
+    if (this.problem.operator === '+') {
       this.feedbackText
         .setText(
-          '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0427\u0430\u0441\u0442\u0438\u043d\u0430 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0439\u0434\u0435',
+          '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0407\u0436\u0430\u0447\u043a\u0438 \u0437\u0431\u0438\u0440\u0430\u044e\u0442\u044c\u0441\u044f \u0440\u0430\u0437\u043e\u043c',
         )
         .setColor('#28743a')
 
-      this.subtractHedgehogs(() => {
+      this.gatherHedgehogs(() => {
         this.finishCorrectAnswer()
       })
-    })
-  }
 
-  private showCorrectAnswerReveal(
-    onComplete: () => void,
-  ): void {
-    const { width, height } = this.scale
+      return
+    }
 
-    /*
-     * ????????? ????????? ????? ????
-     * ????????????? ??????, ??? ????
-     * ?? ??????????? ????????.
-     */
-    const centerX = width / 2
-    const centerY = height / 2 - 18
-
-    const glow = this.add
-      .circle(
-        centerX,
-        centerY,
-        236,
-        0xffef9a,
-        0.58,
+    this.feedbackText
+      .setText(
+        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e! \u0427\u0430\u0441\u0442\u0438\u043d\u0430 \u0457\u0436\u0430\u0447\u043a\u0456\u0432 \u0439\u0434\u0435',
       )
-      .setDepth(820)
-      .setAlpha(0)
-      .setScale(0.25)
+      .setColor('#28743a')
 
-    const answerCard = this.add
-      .rectangle(
-        centerX,
-        centerY,
-        620,
-        460,
-        0xfff8d9,
-        0.98,
-      )
-      .setStrokeStyle(
-        8,
-        0x78a94c,
-      )
-      .setDepth(821)
-      .setAlpha(0)
-      .setScale(0.3)
-
-    const label = this.add
-      .text(
-        centerX,
-        centerY - 148,
-        '\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e!',
-        {
-          color: '#45623d',
-          fontFamily:
-            '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '56px',
-          fontStyle: 'bold',
-          align: 'center',
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(822)
-      .setAlpha(0)
-
-    const answer = this.add
-      .text(
-        centerX,
-        centerY + 44,
-        String(this.problem.answer),
-        {
-          color: '#28743a',
-          fontFamily:
-            '"Trebuchet MS", Arial, sans-serif',
-          fontSize: '300px',
-          fontStyle: 'bold',
-          stroke: '#ffffff',
-          strokeThickness: 16,
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(823)
-      .setAlpha(0)
-      .setScale(0.18)
-
-    const sparkles = [
-      [-292, -202, '\u2728'],
-      [296, -188, '\u2B50'],
-      [-294, 198, '\u2B50'],
-      [292, 204, '\u2728'],
-    ].map(
-      ([offsetX, offsetY, symbol]) =>
-        this.add
-          .text(
-            centerX + Number(offsetX),
-            centerY + Number(offsetY),
-            String(symbol),
-            {
-              fontFamily:
-                'Apple Color Emoji, Segoe UI Emoji, Arial',
-              fontSize: '60px',
-            },
-          )
-          .setOrigin(0.5)
-          .setDepth(824)
-          .setAlpha(0)
-          .setScale(0.2),
-    )
-
-    /*
-     * ????? ??????.
-     */
-    this.tweens.add({
-      targets: glow,
-      alpha: 0.75,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 260,
-      ease: 'Back.Out',
-    })
-
-    this.tweens.add({
-      targets: answerCard,
-      alpha: 1,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 300,
-      ease: 'Back.Out',
-    })
-
-    this.tweens.add({
-      targets: label,
-      alpha: 1,
-      duration: 230,
-      delay: 100,
-      ease: 'Sine.Out',
-    })
-
-    this.tweens.add({
-      targets: answer,
-      alpha: 1,
-      scaleX: 1.12,
-      scaleY: 1.12,
-      duration: 340,
-      delay: 80,
-      ease: 'Back.Out',
-      onComplete: () => {
-        /*
-         * ????????? ????? ?????????
-         * ?????????? ????? ???? ?? ?????.
-         */
-        this.tweens.add({
-          targets: answer,
-          scaleX: 1,
-          scaleY: 1,
-          duration: 150,
-          ease: 'Sine.InOut',
-        })
-      },
-    })
-
-    sparkles.forEach(
-      (sparkle, index) => {
-        this.tweens.add({
-          targets: sparkle,
-          alpha: 1,
-          scaleX: 1,
-          scaleY: 1,
-          angle:
-            index % 2 === 0
-              ? 18
-              : -18,
-          duration: 260,
-          delay: 140 + index * 55,
-          ease: 'Back.Out',
-        })
-      },
-    )
-
-    /*
-     * ???????? ????????? ?? ??????,
-     * ? ????? ?????? ??????????.
-     */
-    this.time.delayedCall(1250, () => {
-      const objects = [
-        glow,
-        answerCard,
-        label,
-        answer,
-        ...sparkles,
-      ]
-
-      this.tweens.add({
-        targets: objects,
-        alpha: 0,
-        scaleX: 0.86,
-        scaleY: 0.86,
-        duration: 260,
-        ease: 'Sine.In',
-        onComplete: () => {
-          objects.forEach((item) => {
-            item.destroy()
-          })
-
-          /*
-           * ?????? ????? ????????? ???
-           * ???????.
-           */
-          onComplete()
-        },
-      })
+    this.subtractHedgehogs(() => {
+      this.finishCorrectAnswer()
     })
   }
 
@@ -1419,315 +1211,12 @@ this.answerButtons.forEach((button) => {
         hedgehog.celebrate()
       })
 
-    this.animateAppleReward()
-
     this.time.delayedCall(800, () => {
       audioManager.playRandomCorrect()
     })
 
     this.time.delayedCall(4900, () => {
       this.startNewProblem()
-    })
-  }
-
-  private animateAppleReward(): void {
-    const { width, height } = this.scale
-
-    const startX = width / 2
-    const startY = height / 2 + 20
-
-    const targetX = this.appleText.x
-    const targetY = this.appleText.y
-
-    /*
-     * ?????? ??????? ????????? ?? emoji.
-     * ???? ???????? ????? ?????????????
-     * ?? ?????? ???????? ??????.
-     */
-    const apple = this.add
-      .text(
-        startX,
-        startY,
-        '\u{1F34E}',
-        {
-          fontFamily:
-            'Apple Color Emoji, Segoe UI Emoji, Arial',
-          fontSize: '172px',
-        },
-      )
-      .setOrigin(0.5)
-      .setDepth(850)
-      .setAlpha(0)
-      .setScale(0.15)
-      .setAngle(-18)
-
-    /*
-     * ??????-???????? ??????? ???????.
-     */
-    const glow = this.add
-      .circle(
-        startX,
-        startY,
-        104,
-        0xffe987,
-        0.32,
-      )
-      .setDepth(849)
-      .setAlpha(0)
-      .setScale(0.3)
-
-    /*
-     * ???????? ??????? ??????? ????????.
-     */
-    const sparkleOffsets = [
-      [-132, -82],
-      [136, -70],
-      [-118, 102],
-      [126, 94],
-    ]
-
-    const sparkles = sparkleOffsets.map(
-      ([offsetX, offsetY], index) =>
-        this.add
-          .text(
-            startX + offsetX,
-            startY + offsetY,
-            index % 2 === 0
-              ? '\u2728'
-              : '\u2B50',
-            {
-              fontFamily:
-                'Apple Color Emoji, Segoe UI Emoji, Arial',
-              fontSize:
-                index % 2 === 0
-                  ? '48px'
-                  : '40px',
-            },
-          )
-          .setOrigin(0.5)
-          .setDepth(851)
-          .setAlpha(0)
-          .setScale(0.2),
-    )
-
-    /*
-     * ????? ????? ? ?????? ??????.
-     */
-    this.tweens.add({
-      targets: glow,
-      alpha: 0.8,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 260,
-      ease: 'Back.Out',
-    })
-
-    this.tweens.add({
-      targets: apple,
-      alpha: 1,
-      scaleX: 1.18,
-      scaleY: 1.18,
-      angle: 10,
-      duration: 320,
-      ease: 'Back.Out',
-      onComplete: () => {
-        this.tweens.add({
-          targets: apple,
-          scaleX: 1,
-          scaleY: 1,
-          angle: -5,
-          duration: 160,
-          ease: 'Sine.InOut',
-          onComplete: () => {
-            this.flyAppleToCounter(
-              apple,
-              glow,
-              sparkles,
-              targetX,
-              targetY,
-            )
-          },
-        })
-      },
-    })
-
-    sparkles.forEach(
-      (sparkle, index) => {
-        this.tweens.add({
-          targets: sparkle,
-          alpha: 1,
-          scaleX: 1,
-          scaleY: 1,
-          angle:
-            index % 2 === 0
-              ? 20
-              : -20,
-          duration: 260,
-          delay: 70 + index * 45,
-          ease: 'Back.Out',
-        })
-      },
-    )
-  }
-
-  private flyAppleToCounter(
-    apple: Phaser.GameObjects.Text,
-    glow: Phaser.GameObjects.Arc,
-    sparkles: Phaser.GameObjects.Text[],
-    targetX: number,
-    targetY: number,
-  ): void {
-    const startX = apple.x
-    const startY = apple.y
-
-    /*
-     * ?????????? ????? ??????? ????:
-     * ??????? ???????? ????? ?????? ?????,
-     * ? ????? ????? ? ?????????.
-     */
-    const curve = new Phaser.Curves.QuadraticBezier(
-      new Phaser.Math.Vector2(
-        startX,
-        startY,
-      ),
-      new Phaser.Math.Vector2(
-        startX + (targetX - startX) * 0.48,
-        Math.min(startY, targetY) - 150,
-      ),
-      new Phaser.Math.Vector2(
-        targetX,
-        targetY,
-      ),
-    )
-
-    const progress = {
-      value: 0,
-    }
-
-    this.tweens.add({
-      targets: glow,
-      alpha: 0,
-      scaleX: 1.5,
-      scaleY: 1.5,
-      duration: 280,
-      ease: 'Sine.Out',
-      onComplete: () => {
-        glow.destroy()
-      },
-    })
-
-    sparkles.forEach(
-      (sparkle, index) => {
-        this.tweens.add({
-          targets: sparkle,
-          alpha: 0,
-          scaleX: 1.6,
-          scaleY: 1.6,
-          y:
-            sparkle.y -
-            22 -
-            index * 7,
-          duration: 330,
-          delay: index * 25,
-          ease: 'Sine.Out',
-          onComplete: () => {
-            sparkle.destroy()
-          },
-        })
-      },
-    )
-
-    this.tweens.add({
-      targets: progress,
-      value: 1,
-      duration: 920,
-      ease: 'Cubic.InOut',
-
-      onUpdate: () => {
-        const point = curve.getPoint(
-          progress.value,
-        )
-
-        apple.setPosition(
-          point.x,
-          point.y,
-        )
-
-        apple.setAngle(
-          -5 +
-          progress.value * 390,
-        )
-
-        const scale =
-          1 -
-          progress.value * 0.58
-
-        apple.setScale(scale)
-      },
-
-      onComplete: () => {
-        apple.destroy()
-        this.completeAppleReward()
-      },
-    })
-  }
-
-  private completeAppleReward(): void {
-    this.score += 1
-
-    this.appleText.setText(
-      `\u{1F34E} ${this.score}`,
-    )
-
-    /*
-     * ???????? ??????? ??????????,
-     * ???? ??????? ????????? ?????????.
-     */
-    this.tweens.killTweensOf(
-      this.appleText,
-    )
-
-    this.appleText.setScale(1)
-
-    this.tweens.add({
-      targets: this.appleText,
-      scaleX: 1.42,
-      scaleY: 1.42,
-      angle: -7,
-      duration: 130,
-      ease: 'Back.Out',
-      yoyo: true,
-      hold: 70,
-      onComplete: () => {
-        this.appleText
-          .setScale(1)
-          .setAngle(0)
-      },
-    })
-
-    /*
-     * ????????? ?????? ? ????? ????????.
-     */
-    const burst = this.add
-      .circle(
-        this.appleText.x,
-        this.appleText.y,
-        24,
-        0xffd85f,
-        0.75,
-      )
-      .setDepth(840)
-
-    this.tweens.add({
-      targets: burst,
-      alpha: 0,
-      scaleX: 2.4,
-      scaleY: 2.4,
-      duration: 360,
-      ease: 'Sine.Out',
-      onComplete: () => {
-        burst.destroy()
-      },
     })
   }
 
